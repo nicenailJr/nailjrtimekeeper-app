@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ネイル研修管理 — スタッフ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4f1;--sf:#fff;--sf2:#f1ede8;--sf3:#e8e3dc;
+  --bd:#e0dbd3;--bd2:#cbc4ba;
+  --tx:#1c1a17;--tx2:#6b6558;--tx3:#a09890;
+  --ac:#2a2520;--ac2:#3d3830;
+  --pink:#d4607a;--pink-l:#fceef2;--pink-m:#f0b0be;
+  --green:#2e8c5e;--green-l:#e8f5ee;
+  --amber:#c47d20;--amber-l:#fdf3e3;
+  --red:#bf3a2e;--red-l:#fdecea;
+  --blue:#2674b0;--blue-l:#e8f3fb;
+  --r:10px;--rs:6px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shm:0 4px 16px rgba(0,0,0,.11),0 2px 4px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5}
+#root{min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{height:52px;background:var(--sf);border-bottom:1px solid var(--bd);padding:0 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0}
+.logo-gem{width:24px;height:24px;border-radius:7px;background:var(--pink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-gem svg{width:13px;height:13px;fill:#fff}
+.topnav{display:flex;gap:2px;margin:0 8px}
+.tnav{padding:5px 10px;border:none;background:transparent;border-radius:var(--rs);cursor:pointer;font-size:12px;font-family:inherit;color:var(--tx2);display:flex;align-items:center;gap:4px;transition:.15s;white-space:nowrap}
+.tnav:hover{background:var(--sf2);color:var(--tx)}
+.tnav.on{background:var(--ac);color:#fff;font-weight:500}
+.tnav .bnum{background:var(--pink);color:#fff;border-radius:10px;padding:1px 5px;font-size:10px;margin-left:2px}
+.tnav.on .bnum{background:rgba(255,255,255,.25)}
+
+/* Location switcher in topbar */
+.loc-switcher{display:flex;gap:4px;align-items:center}
+.loc-sw-btn{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:.15s;font-family:inherit;white-space:nowrap}
+.loc-sw-btn:hover{opacity:.85}
+.loc-sw-btn.active{box-shadow:0 0 0 2px var(--ac)}
+.datechip{font-family:'DM Mono',monospace;font-size:10px;color:var(--tx3);background:var(--sf2);padding:3px 8px;border-radius:var(--rs);flex-shrink:0}
+
+/* ── PAGE ── */
+.page{max-width:1200px;margin:0 auto;padding:18px 20px}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--sh)}
+.card-p{padding:18px}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--tx3);text-transform:uppercase;margin-bottom:9px}
+
+/* ── BTNS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--rs);font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;white-space:nowrap;text-decoration:none}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--ac);color:#fff;border-color:var(--ac)}.btn-primary:hover:not(:disabled){background:var(--ac2)}
+.btn-ghost{background:transparent;color:var(--tx2);border-color:var(--bd2)}.btn-ghost:hover:not(:disabled){background:var(--sf2);color:var(--tx)}
+.btn-pink{background:var(--pink);color:#fff;border-color:var(--pink)}.btn-pink:hover:not(:disabled){background:#be4f69}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}.btn-green:hover:not(:disabled){background:#267550}
+.btn-amber{background:var(--amber);color:#fff;border-color:var(--amber)}.btn-amber:hover:not(:disabled){background:#a86a18}
+.btn-danger{background:transparent;color:var(--red);border-color:#e8beba}.btn-danger:hover:not(:disabled){background:var(--red-l)}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px;border-radius:4px}
+.btn-block{width:100%;justify-content:center;padding:12px}
+
+/* ── FORM ── */
+.fg{display:flex;flex-direction:column;gap:4px}
+.flabel{font-size:11px;font-weight:500;color:var(--tx2);letter-spacing:.04em}
+.req{color:var(--pink);margin-left:2px}
+input[type=text],input[type=number],input[type=date],input[type=url],input[type=tel],select,textarea{border:1px solid var(--bd2);border-radius:var(--rs);padding:8px 10px;font-size:13px;background:var(--sf);color:var(--tx);font-family:inherit;width:100%;transition:.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(42,37,32,.08)}
+textarea{resize:vertical;min-height:72px}
+
+/* ── STARS ── */
+.stars-inp{display:flex;gap:4px}
+.star{width:30px;height:30px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--sf2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.1s;color:var(--tx3)}
+.star:hover,.star.on{background:#fff8e1;border-color:#f59e0b;color:#f59e0b}
+.srow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}
+.srow:last-child{border-bottom:none}
+.srow-lbl{font-size:12px;color:var(--tx2);min-width:148px}
+.srow-val{font-size:12px;font-weight:700;min-width:20px;font-family:'DM Mono',monospace}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.bdg-pass{background:var(--green-l);color:var(--green)}
+.bdg-review{background:var(--amber-l);color:var(--amber)}
+.bdg-fail{background:var(--red-l);color:var(--red)}
+.bdg-none{background:var(--sf2);color:var(--tx3)}
+.bdg-pending{background:var(--blue-l);color:var(--blue)}
+.lc-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+
+/* ── TIMER BOARD ── */
+.trainee-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.tc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);transition:.2s}
+.tc.run-active{border-color:var(--pink-m)}
+.tc-head{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--sf2);border-bottom:1px solid var(--bd)}
+.tc-avatar{width:30px;height:30px;border-radius:50%;background:var(--pink-l);color:var(--pink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tc-name{font-size:13px;font-weight:700}
+.tc-code{font-size:11px;color:var(--tx3);font-family:'DM Mono',monospace;margin-top:1px}
+.tc-sessions{padding:9px 12px;display:flex;flex-direction:column;gap:6px}
+.srow-t{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg);transition:.15s}
+.srow-t.t-wait{background:#fff8f0;border-color:#f0d0a0}
+.srow-t.t-run{background:var(--pink-l);border-color:var(--pink-m)}
+.srow-t.t-done{background:var(--green-l);border-color:#a8d5bf}
+.srow-t.t-eval{opacity:.7;background:var(--sf2)}
+.snum{width:18px;height:18px;border-radius:50%;background:var(--sf);border:1px solid var(--bd2);font-size:10px;font-weight:700;color:var(--tx2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.srow-t.t-run .snum{background:var(--pink);border-color:var(--pink);color:#fff}
+.srow-t.t-done .snum,.srow-t.t-eval .snum{background:var(--green);border-color:var(--green);color:#fff}
+.smenu-txt{flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx2)}
+.stimer{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;min-width:58px;text-align:right}
+.stimer.run{color:var(--pink)}.stimer.over{color:var(--red)}.stimer.done{color:var(--green)}
+.s-status{font-size:10px;padding:2px 6px;border-radius:10px;white-space:nowrap;font-weight:500;flex-shrink:0}
+.ss-consent{background:var(--amber-l);color:var(--amber)}
+.ss-running{background:var(--pink-l);color:var(--pink)}
+.ss-done{background:var(--green-l);color:var(--green)}
+.ss-eval{background:var(--sf2);color:var(--tx3)}
+.sbtns{display:flex;gap:3px;flex-shrink:0}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--pink);animation:pulse 1.2s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.add-s-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:6px;border:1px dashed var(--bd2);border-radius:var(--rs);background:transparent;cursor:pointer;font-size:12px;color:var(--tx3);font-family:inherit;transition:.15s;margin-top:3px}
+.add-s-btn:hover:not(:disabled){background:var(--sf2);border-color:var(--tx3);color:var(--tx2)}
+.add-s-btn:disabled{opacity:.3;cursor:not-allowed}
+
+
+/* ── EVAL MODAL (simplified) ── */
+.mbk{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.mbox{background:var(--sf);border-radius:var(--r);box-shadow:var(--shm);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;animation:mup .2s ease}
+@keyframes mup{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhead{display:flex;align-items:flex-start;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--sf);z-index:1}
+.mhead-title{font-size:15px;font-weight:700}
+.mhead-sub{font-size:12px;color:var(--tx3);margin-top:2px}
+.mclose{width:26px;height:26px;border-radius:50%;border:none;background:var(--sf2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--tx2);flex-shrink:0}
+.mclose:hover{background:var(--bd)}
+.mbody{padding:20px}
+.mfoot{padding:12px 18px;border-top:1px solid var(--bd);display:flex;gap:7px;justify-content:flex-end;background:var(--sf)}
+
+/* Time summary bar */
+.time-sum{display:flex;margin-bottom:18px;border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden;background:var(--sf2)}
+.ts-item{flex:1;padding:12px 10px;text-align:center;border-right:1px solid var(--bd)}
+.ts-item:last-child{border-right:none}
+.ts-lbl{font-size:10px;color:var(--tx3);margin-bottom:3px}
+.ts-val{font-size:18px;font-weight:700;font-family:'DM Mono',monospace}
+.ts-val.over{color:var(--red)}.ts-val.ok{color:var(--green)}.ts-val.n{color:var(--tx)}
+
+/* Result buttons */
+.result-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.result-btn{padding:14px 10px;border-radius:var(--rs);border:1.5px solid var(--bd);background:var(--sf);cursor:pointer;text-align:center;font-family:inherit;transition:.15s}
+.result-btn:hover{border-color:var(--bd2);background:var(--sf2)}
+.result-btn.sel-pass{border-color:var(--green);background:var(--green-l)}
+.result-btn.sel-review{border-color:var(--amber);background:var(--amber-l)}
+.result-btn.sel-fail{border-color:var(--red);background:var(--red-l)}
+.result-btn-label{font-size:15px;font-weight:700}
+.result-btn-sub{font-size:10px;color:var(--tx3);margin-top:3px}
+.sel-pass .result-btn-label{color:var(--green)}
+.sel-review .result-btn-label{color:var(--amber)}
+.sel-fail .result-btn-label{color:var(--red)}
+
+/* Customer summary box */
+.cust-summary{background:var(--green-l);border:1px solid #a8d5bf;border-radius:var(--rs);padding:12px 14px;margin-bottom:16px}
+.survey-summary{background:var(--blue-l);border:1px solid #9bc8e8;border-radius:var(--rs);padding:12px 14px;margin-bottom:16px}
+
+/* ── CUSTOMER PAGE ── */
+.cust-page{min-height:100vh;background:linear-gradient(160deg,#fceef2 0%,#f6f4f1 55%,#e8f3fb 100%)}
+.cust-header{background:var(--sf);border-bottom:1px solid var(--bd);padding:13px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh)}
+.cust-body{max-width:500px;margin:0 auto;padding:22px 16px 40px}
+.cust-card{background:var(--sf);border-radius:14px;padding:22px 20px;box-shadow:var(--shm);margin-bottom:14px;border:1px solid var(--bd)}
+.cust-step-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.cust-step-num{width:27px;height:27px;border-radius:50%;background:var(--pink);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cust-step-num.done{background:var(--green)}
+.cust-step-title{font-size:15px;font-weight:700}
+.cust-step-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.staff-confirm{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--green-l);border:1px solid #a8d5bf;border-radius:var(--rs);margin:12px 0}
+.staff-confirm-name{font-weight:700;color:var(--green)}
+.staff-confirm-sub{font-size:11px;color:var(--tx2);margin-top:1px}
+.code-row{display:flex;gap:7px;margin-bottom:4px}
+.code-row input{flex:1;font-size:17px;font-family:'DM Mono',monospace;text-align:center;letter-spacing:.1em;font-weight:700;padding:10px}
+.consent-notice{background:var(--amber-l);border:1px solid #f0d090;border-radius:var(--rs);padding:11px 13px;font-size:12px;line-height:1.75;margin-bottom:14px;color:var(--tx)}
+.check-item{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;transition:.12s;margin-bottom:6px}
+.check-item.sel{border-color:var(--green);background:var(--green-l)}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);margin-top:1px;flex-shrink:0;cursor:pointer}
+.check-item label{cursor:pointer;font-size:13px;line-height:1.5}
+.form-section{margin-bottom:18px}
+.form-section-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+.success-wrap{text-align:center;padding:28px 16px}
+.success-icon{font-size:52px;margin-bottom:14px}
+.success-title{font-size:20px;font-weight:700;margin-bottom:6px}
+.success-sub{font-size:13px;color:var(--tx2);line-height:1.75}
+
+/* ── DETAIL PAGE ── */
+.detail-hero{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:13px;box-shadow:var(--sh)}
+.detail-name{font-size:20px;font-weight:700;margin-bottom:4px}
+.detail-meta{font-size:12px;color:var(--tx2);display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:13px}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.dg-item{background:var(--sf2);border-radius:var(--rs);padding:11px}
+.dg-lbl{font-size:10px;color:var(--tx3);margin-bottom:3px}
+.dg-val{font-size:17px;font-weight:700;font-family:'DM Mono',monospace}
+.dg-val.over{color:var(--red)}.dg-val.ok{color:var(--green)}
+.detail-body{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}
+.score-table{width:100%;border-collapse:collapse;font-size:12px}
+.score-table th{background:var(--sf2);padding:6px 9px;text-align:left;font-weight:600;font-size:10px;color:var(--tx2);border-bottom:1px solid var(--bd)}
+.score-table td{padding:6px 9px;border-bottom:1px solid var(--bd)}
+.score-table tr:last-child td{border-bottom:none}
+.star-disp{color:#f59e0b}
+
+/* Instructor eval — simplified */
+.inst-box{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-top:0;box-shadow:var(--sh)}
+.inst-box.pending{border-color:var(--amber);background:#fffdf7}
+.inst-box.done-e{border-color:var(--green);background:#f7fdf9}
+.inst-result-display{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.inst-note-display{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 13px}
+.inst-note-label{font-size:10px;color:var(--tx3);margin-bottom:3px}
+
+/* ── LIST ── */
+.list-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.list-bar input,.list-bar select{width:auto;font-size:12px;padding:5px 8px}
+.sp{flex:1}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:var(--rs)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:820px}
+thead{background:var(--sf2)}
+th{padding:8px 10px;text-align:left;font-weight:600;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--bd);white-space:nowrap;letter-spacing:.04em}
+td{padding:7px 10px;border-bottom:1px solid var(--bd);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf9f6}
+.mono{font-family:'DM Mono',monospace;font-size:11px}
+.empty-st{text-align:center;padding:40px;color:var(--tx3)}
+
+/* ── STATS ── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:13px}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
+.sc-lbl{font-size:10px;color:var(--tx3);font-weight:500}
+.sc-val{font-size:24px;font-weight:700;margin-top:4px;font-family:'DM Mono',monospace}
+.sc-sub{font-size:10px;color:var(--tx3);margin-top:1px}
+.cc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:15px;box-shadow:var(--sh);margin-bottom:12px}
+.cc-title{font-size:13px;font-weight:700;margin-bottom:10px}
+.bar-chart{display:flex;flex-direction:column;gap:7px}
+.br{display:flex;align-items:center;gap:8px}
+.bn{font-size:11px;color:var(--tx2);min-width:100px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt{flex:1;height:19px;background:var(--sf2);border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px;transition:width .5s ease}
+.bf-pink{background:var(--pink)}.bf-green{background:var(--green)}.bf-amber{background:var(--amber)}.bf-acc{background:var(--ac)}
+.bv{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;min-width:40px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── ADMIN ── */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.admin-sec{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.admin-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.li{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg)}
+.li-main{flex:1;min-width:0;font-size:13px}
+.li-sub{font-size:10px;color:var(--tx3);margin-top:1px;font-family:'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;z-index:500;background:var(--ac);color:#fff;padding:10px 16px;border-radius:var(--rs);font-size:13px;font-weight:500;box-shadow:var(--shm);animation:mup .25s ease;pointer-events:none}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+
+@media(max-width:680px){
+  .topbar{padding:0 10px;flex-wrap:wrap;height:auto;gap:6px;padding:6px 10px}
+  .page{padding:10px}
+  .trainee-grid{grid-template-columns:1fr}
+  .sg{grid-template-columns:1fr 1fr}
+  .two-col,.detail-body,.admin-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .loc-switcher{flex-wrap:wrap}
+  .tnav span:not(.bnum){display:none}
+}
+
+/* ── ADMIN LOCK ── */
+.admin-lock{min-height:60vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-box{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:36px 32px;width:100%;max-width:360px;box-shadow:var(--shm);text-align:center}
+.lock-icon{font-size:36px;margin-bottom:14px}
+.lock-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.lock-sub{font-size:12px;color:var(--tx3);margin-bottom:22px}
+.lock-input{border:1px solid var(--bd2);border-radius:var(--rs);padding:10px 12px;font-size:15px;width:100%;text-align:center;letter-spacing:.1em;font-family:inherit;margin-bottom:8px;background:var(--sf);color:var(--tx)}
+.lock-input:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(42,37,32,.08)}
+.lock-err{font-size:12px;color:var(--red);margin-bottom:10px;min-height:16px}
+.lock-btn{width:100%;padding:11px;background:var(--ac);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.lock-btn:hover{background:var(--ac2)}
+.admin-pass-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.admin-pass-row input{flex:1;font-size:13px;letter-spacing:.06em}
+
+/* ── APP LOCK ── */
+.app-lock{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:linear-gradient(145deg,#1c1a17 0%,#2a2520 60%,#3d3028 100%);
+  position:relative;overflow:hidden}
+.app-lock::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 70% 30%,rgba(212,96,122,.15) 0%,transparent 60%),
+             radial-gradient(ellipse at 20% 80%,rgba(46,140,94,.08) 0%,transparent 50%)}
+.app-lock-box{background:rgba(255,255,255,.97);border-radius:18px;
+  padding:40px 36px;width:100%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;z-index:1;
+  animation:lockUp .35s ease}
+@keyframes lockUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.app-lock-gem{width:52px;height:52px;border-radius:14px;background:var(--pink);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
+  box-shadow:0 6px 20px rgba(212,96,122,.4)}
+.app-lock-gem svg{width:26px;height:26px;fill:#fff}
+.app-lock-title{font-size:20px;font-weight:900;text-align:center;margin-bottom:4px;color:var(--tx)}
+.app-lock-sub{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:28px}
+.app-lock-label{font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px}
+.app-lock-input{border:1.5px solid var(--bd2);border-radius:var(--rs);
+  padding:12px 14px;font-size:16px;width:100%;text-align:center;
+  letter-spacing:.12em;font-family:'DM Mono',monospace;font-weight:700;
+  color:var(--tx);background:var(--sf);margin-bottom:6px;transition:.15s}
+.app-lock-input:focus{outline:none;border-color:var(--pink);
+  box-shadow:0 0 0 3px rgba(212,96,122,.1)}
+.app-lock-err{font-size:12px;color:var(--red);text-align:center;min-height:18px;margin-bottom:10px}
+.app-lock-btn{width:100%;padding:13px;background:var(--ac);color:#fff;border:none;
+  border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.app-lock-btn:hover{background:var(--ac2)}
+.app-lock-show{margin-top:10px;background:none;border:none;font-size:12px;
+  color:var(--tx3);cursor:pointer;width:100%;font-family:inherit}
+/* STUDENT STYLES */
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(145deg,#1c1a17,#2a2520)}
+.login-box{background:var(--sf);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:var(--shm);animation:up .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.login-gem{width:44px;height:44px;border-radius:12px;background:var(--pink);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.login-gem svg{width:22px;height:22px;fill:#fff}
+.login-title{font-size:18px;font-weight:900;text-align:center;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:24px}
+.login-label{font-size:11px;font-weight:500;color:var(--tx2);margin-bottom:5px}
+.login-input{border:1px solid var(--bd2);border-radius:var(--rs);padding:11px 13px;font-size:16px;font-family:'DM Mono',monospace;text-align:center;letter-spacing:.12em;font-weight:700;width:100%;color:var(--tx);background:var(--sf);margin-bottom:8px}
+.login-input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(212,96,122,.1)}
+.login-err{font-size:12px;color:var(--red);text-align:center;min-height:18px;margin-bottom:8px}
+.login-btn{width:100%;padding:12px;background:var(--pink);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.login-btn:hover{background:#be4f69}
+.login-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── TOPBAR ── */
+.topbar{height:52px;background:var(--sf);border-bottom:1px solid var(--bd);padding:0 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--sh)}
+.top-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.top-gem{width:22px;height:22px;border-radius:6px;background:var(--pink);display:flex;align-items:center;justify-content:center}
+.top-gem svg{width:11px;height:11px;fill:#fff}
+.top-name{font-size:13px;font-weight:700}
+.top-code{font-size:11px;font-family:'DM Mono',monospace;color:var(--tx3);background:var(--sf2);padding:2px 8px;border-radius:4px}
+.logout-btn{padding:5px 12px;border:1px solid var(--bd2);border-radius:var(--rs);background:transparent;cursor:pointer;font-size:12px;font-family:inherit;color:var(--tx2)}
+.logout-btn:hover{background:var(--sf2)}
+
+/* ── PAGE ── */
+.page{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+
+/* ── SUMMARY CARDS ── */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:560px){.summary-grid{grid-template-columns:1fr 1fr}}
+.sum-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 12px;box-shadow:var(--sh);text-align:center}
+.sum-lbl{font-size:10px;color:var(--tx3);font-weight:500;margin-bottom:4px}
+.sum-val{font-size:24px;font-weight:900;font-family:'DM Mono',monospace}
+.sum-sub{font-size:10px;color:var(--tx3);margin-top:2px}
+
+/* ── RECORD CARDS ── */
+.rec-list{display:flex;flex-direction:column;gap:12px}
+.rec-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.rec-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--sf2);border-bottom:1px solid var(--bd);gap:10px;flex-wrap:wrap}
+.rec-date{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx2)}
+.rec-menu{font-size:13px;font-weight:700}
+.rec-result{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.rr-pass{background:var(--green-l);color:var(--green)}
+.rr-review{background:var(--amber-l);color:var(--amber)}
+.rr-fail{background:var(--red-l);color:var(--red)}
+.rr-none{background:var(--sf2);color:var(--tx3);border:1px solid var(--bd)}
+
+.rec-
+.rec-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.rec-meta-item{display:flex;flex-direction:column;align-items:center;background:var(--bg);border-radius:var(--rs);padding:8px 12px;min-width:72px}
+.rmi-lbl{font-size:10px;color:var(--tx3);margin-bottom:3px}
+.rmi-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace}
+.rmi-val.over{color:var(--red)}.rmi-val.ok{color:var(--green)}
+
+/* stars */
+.star-disp{color:#f59e0b;letter-spacing:1px}
+.score-sec{margin-bottom:10px}
+.score-sec-title{font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px}
+.score-rows{}
+.score-row-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}
+.score-row-item:last-child{border-bottom:none}
+.score-row-lbl{font-size:12px;color:var(--tx2);flex:1}
+.score-row-stars{font-size:13px;color:#f59e0b}
+.score-row-num{font-size:12px;font-family:'DM Mono',monospace;font-weight:700;min-width:20px;text-align:right}
+
+.note-box{background:var(--sf2);border-radius:var(--rs);padding:10px 12px;margin-top:10px}
+.note-lbl{font-size:10px;color:var(--tx3);margin-bottom:4px;font-weight:500}
+.note-txt{font-size:13px;color:var(--tx);line-height:1.7}
+
+/* chart */
+.mini-chart{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.mc-row{display:flex;align-items:center;gap:8px}
+.mc-lbl{font-size:11px;color:var(--tx2);min-width:90px;text-align:right}
+.mc-track{flex:1;height:16px;background:var(--sf2);border-radius:3px;overflow:hidden}
+.mc-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.mc-val{font-size:11px;font-weight:700;font-family:'DM Mono',monospace;min-width:30px}
+
+/* empty */
+.empty{text-align:center;padding:48px 20px;color:var(--tx3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-msg{font-size:14px}
+
+/* section title */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-title{font-size:16px;font-weight:900}
+.sec-sub{font-size:12px;color:var(--tx3);margin-top:2px}
+
+/* tab */
+.tabs{display:flex;gap:4px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:5px;margin-bottom:16px;box-shadow:var(--sh)}
+.tab-btn{flex:1;padding:7px;border:none;background:transparent;border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;color:var(--tx2);font-weight:500;transition:.15s}
+.tab-btn.on{background:var(--ac);color:#fff;font-weight:700}
+
+/* progress ring placeholder */
+.prog-wrap{display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.prog-item{display:flex;flex-direction:column;align-items:center;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;min-width:100px;box-shadow:var(--sh)}
+.prog-num{font-size:28px;font-weight:900;font-family:'DM Mono',monospace}
+.prog-lbl{font-size:11px;color:var(--tx3);margin-top:3px}
+.pass-ring{font-size:28px;font-weight:900;font-family:'DM Mono',monospace}
+.pass-ring.good{color:var(--green)}.pass-ring.mid{color:var(--amber)}.pass-ring.low{color:var(--red)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+
+/* ══════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════ */
+const DEF_LOCATIONS=[
+  {id:'loc1',name:'東京校',color:'#d4607a',bg:'#fceef2'},
+  {id:'loc2',name:'大阪校',color:'#2674b0',bg:'#e8f3fb'},
+  {id:'loc3',name:'名古屋校',color:'#2e8c5e',bg:'#e8f5ee'},
+  {id:'loc4',name:'福岡校',color:'#c47d20',bg:'#fdf3e3'},
+];
+const DEF_MENUS=[
+  {id:'m1',name:'ジェルネイル（単色）',targetMins:90},
+  {id:'m2',name:'ジェルネイル（アート）',targetMins:120},
+  {id:'m3',name:'スカルプチュア',targetMins:150},
+  {id:'m4',name:'ケア＆ポリッシュ',targetMins:60},
+  {id:'m5',name:'フットネイル',targetMins:90},
+  {id:'m6',name:'ネイルオフ',targetMins:45},
+];
+const DEF_TRAINEES={
+  loc1:[{name:'田中 花子',code:'TK-001'},{name:'山田 美咲',code:'TK-002'},{name:'鈴木 愛',code:'TK-003'},{name:'佐藤 結衣',code:'TK-004'},{name:'伊藤 莉子',code:'TK-005'},{name:'渡辺 奈々',code:'TK-006'},{name:'中村 さくら',code:'TK-007'},{name:'小林 あかり',code:'TK-008'},{name:'加藤 ひな',code:'TK-009'},{name:'吉田 葵',code:'TK-010'},{name:'松本 陽菜',code:'TK-011'},{name:'井上 千尋',code:'TK-012'}],
+  loc2:[{name:'西村 沙織',code:'OS-001'},{name:'橋本 奈緒',code:'OS-002'},{name:'木村 舞',code:'OS-003'},{name:'林 佳奈',code:'OS-004'},{name:'清水 ひかり',code:'OS-005'},{name:'山口 彩',code:'OS-006'},{name:'池田 詩',code:'OS-007'},{name:'石川 未来',code:'OS-008'},{name:'阿部 悠',code:'OS-009'},{name:'後藤 紗希',code:'OS-010'},{name:'藤田 菜々',code:'OS-011'},{name:'岡田 理恵',code:'OS-012'}],
+  loc3:[{name:'坂本 恵',code:'NG-001'},{name:'久保 桃',code:'NG-002'},{name:'上田 春菜',code:'NG-003'},{name:'宮崎 彩花',code:'NG-004'},{name:'中島 千夏',code:'NG-005'},{name:'小川 愛実',code:'NG-006'},{name:'島田 茉莉',code:'NG-007'},{name:'長谷川 実咲',code:'NG-008'},{name:'高木 のり',code:'NG-009'},{name:'内田 梢',code:'NG-010'},{name:'竹内 花',code:'NG-011'},{name:'松田 優',code:'NG-012'}],
+  loc4:[{name:'近藤 亜矢',code:'FK-001'},{name:'西田 麻衣',code:'FK-002'},{name:'水野 愛',code:'FK-003'},{name:'安藤 ゆき',code:'FK-004'},{name:'原田 なつ',code:'FK-005'},{name:'中田 瑞希',code:'FK-006'},{name:'村上 由奈',code:'FK-007'},{name:'藤原 あかね',code:'FK-008'},{name:'古川 りん',code:'FK-009'},{name:'片山 朱里',code:'FK-010'},{name:'市川 夏帆',code:'FK-011'},{name:'三浦 葵',code:'FK-012'}],
+};
+const DEF_CONSENT_ITEMS=[
+  'Jrネイリスト(研修生)施術の為、デザインのご要望に沿えない場合がございます。過度に細かなご要望や、研修生への威圧的な態度を取られる場合、施術を中断・お断りさせていただきます。',
+  '通常の施術時間よりお時間を頂戴する場合がございます。',
+  'Jrネイリストによる施術の為、いかなる場合でもお直しはお受けしておりません。また、返金や保証も一切お受けできませんので、予めご了承ください。',
+  '2回以上の無断キャンセル、3回以上のお遅刻をされた方は、ご予約をお断りさせて頂く場合がございます。',
+  'お爪や皮膚に疾患・炎症、アレルギーがある場合は、施術をお断りする場合がございます。',
+];
+const SURVEY_QS=[
+  {k:'sq1',l:'仕上がりへの満足度'},{k:'sq2',l:'施術者の接客態度'},
+  {k:'sq3',l:'施術中の快適さ'},{k:'sq4',l:'総合満足度'},
+];
+const CK_CRIT=[{k:'ck1',l:'技術・仕上がり'},{k:'ck2',l:'衛生管理'},{k:'ck3',l:'手順・スピード'},{k:'ck4',l:'接客コミュニケーション'},{k:'ck5',l:'総合評価'}];
+const RESULTS=[{v:'pass',l:'合格',c:'bdg-pass'},{v:'review',l:'要再確認',c:'bdg-review'},{v:'fail',l:'不合格',c:'bdg-fail'}];
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+const fmt2=n=>String(n).padStart(2,'0');
+const fmtT=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h?`${h}:${fmt2(m)}:${fmt2(sc)}`:`${fmt2(m)}:${fmt2(sc)}`};
+const today=()=>new Date().toISOString().split('T')[0];
+const uid=()=>Date.now()+'_'+Math.random().toString(36).slice(2,7);
+const avgS=(obj,keys)=>{if(!obj)return 0;const vs=keys.map(k=>obj[k]||0).filter(v=>v>0);return vs.length?(vs.reduce((a,b)=>a+b,0)/vs.length):0};
+const LS={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+
+/* ══ SUPABASE 設定 ══════════════════════════
+   Supabase Dashboard > Settings > API から
+   Project URL と anon key をコピーして貼り付けてください
+════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://zdpxspwwflirvlqkpanv.supabase.co';           // 例: https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'sb_publishable_195iy6RXWVdZyHpLLqsRqA_2jC_gVpt'; // 例: sb_publishable_xxxxx...
+
+const sb = (SUPABASE_URL !== 'https://zdpxspwwflirvlqkpanv.supabase.co')
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+// Supabaseが設定されているか
+const SB_READY = !!sb;
+
+/* ── DB helper ── */
+const DB = {
+  // 設定の読み書き
+  async getSetting(key, def) {
+    if(!SB_READY) return LS.get(key, def);
+    const {data} = await sb.from('nail_settings').select('value').eq('key', key).single();
+    return data ? data.value : def;
+  },
+  async setSetting(key, value) {
+    LS.set(key, value); // ローカルにもキャッシュ
+    if(!SB_READY) return;
+    await sb.from('nail_settings').upsert({key, value, updated_at: new Date().toISOString()});
+  },
+  // セッション
+  async getSessions() {
+    if(!SB_READY) return LS.get('nail_sessions', {});
+    const {data} = await sb.from('nail_sessions').select('*');
+    if(!data) return LS.get('nail_sessions', {});
+    // DB形式 → アプリ形式に変換
+    const result = {};
+    data.forEach(row => {
+      const k = `${row.loc_id}_${row.trainee_name}`;
+      if(!result[k]) result[k] = [];
+      result[k].push({
+        id: row.id,
+        menu: row.menu,
+        status: row.status,
+        elapsed: row.elapsed,
+        timerStart: row.timer_start,
+        consentData: row.consent_data,
+        surveyData: row.survey_data,
+      });
+    });
+    return result;
+  },
+  async upsertSession(locId, traineeName, session) {
+    LS.set('nail_sessions', null); // キャッシュ無効化
+    if(!SB_READY) return;
+    await sb.from('nail_sessions').upsert({
+      id: session.id,
+      loc_id: locId,
+      trainee_name: traineeName,
+      menu: session.menu || '',
+      status: session.status,
+      elapsed: session.elapsed || 0,
+      timer_start: session.timerStart || null,
+      consent_data: session.consentData || null,
+      survey_data: session.surveyData || null,
+      updated_at: new Date().toISOString(),
+    });
+  },
+  async deleteSession(sessionId) {
+    if(!SB_READY) return;
+    await sb.from('nail_sessions').delete().eq('id', sessionId);
+  },
+  // 記録
+  async getRecords() {
+    if(!SB_READY) return LS.get('nail_records', []);
+    const {data} = await sb.from('nail_records').select('*').order('saved_at', {ascending: false});
+    if(!data) return LS.get('nail_records', []);
+    return data.map(row => ({
+      id: row.id,
+      savedAt: row.saved_at,
+      date: row.date,
+      locationId: row.location_id,
+      trainee: row.trainee,
+      staffCode: row.staff_code,
+      menu: row.menu,
+      elapsed: row.elapsed,
+      targetMins: row.target_mins,
+      checker: row.checker,
+      result: row.result,
+      note: row.note,
+      ck: row.ck,
+      ckAvg: row.ck_avg,
+      consentData: row.consent_data,
+      surveyData: row.survey_data,
+      instructorResult: row.instructor_result,
+      instructorNote: row.instructor_note,
+    }));
+  },
+  async upsertRecord(rec) {
+    LS.set('nail_records', null); // キャッシュ無効化
+    if(!SB_READY) return;
+    await sb.from('nail_records').upsert({
+      id: rec.id,
+      saved_at: rec.savedAt,
+      date: rec.date,
+      location_id: rec.locationId,
+      trainee: rec.trainee,
+      staff_code: rec.staffCode || '',
+      menu: rec.menu || '',
+      elapsed: rec.elapsed || 0,
+      target_mins: rec.targetMins,
+      checker: rec.checker || '',
+      result: rec.result || '',
+      note: rec.note || '',
+      ck: rec.ck || null,
+      ck_avg: rec.ckAvg || null,
+      consent_data: rec.consentData || null,
+      survey_data: rec.surveyData || null,
+      instructor_result: rec.instructorResult || '',
+      instructor_note: rec.instructorNote || '',
+    });
+  },
+  async deleteRecord(id) {
+    if(!SB_READY) return;
+    await sb.from('nail_records').delete().eq('id', id);
+  },
+};
+const DEF_ADMIN_PASS='admin1234'; // ← パスワード（ここを変更してください）
+
+/* ══════════════════════════════════════
+   SELECT PAGE（トップ画面）
+══════════════════════════════════════ */
+function SelectPage({onSelect}){
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',
+      padding:20,background:'linear-gradient(145deg,#1c1a17 0%,#2a2520 60%,#3d3028 100%)',
+      position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',inset:0,
+        background:'radial-gradient(ellipse at 70% 30%,rgba(212,96,122,.15) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(46,140,94,.08) 0%,transparent 50%)'}}/>
+      <div style={{position:'relative',zIndex:1,width:'100%',maxWidth:400,textAlign:'center'}}>
+        {/* ロゴ */}
+        <div style={{width:56,height:56,borderRadius:14,background:'var(--pink)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          margin:'0 auto 20px',boxShadow:'0 8px 24px rgba(212,96,122,.4)'}}>
+          <svg viewBox="0 0 16 16" style={{width:28,height:28,fill:'white'}}>
+            <path d="M8 1L14 5L8 15L2 5Z"/>
+          </svg>
+        </div>
+        <div style={{color:'white',fontSize:22,fontWeight:900,marginBottom:6,letterSpacing:'-.01em'}}>
+          ネイル研修管理
+        </div>
+        <div style={{color:'rgba(255,255,255,.5)',fontSize:13,marginBottom:36}}>
+          ご利用目的を選択してください
+        </div>
+
+        {/* 選択ボタン */}
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <button onClick={()=>onSelect('student')}
+            style={{width:'100%',padding:'18px 20px',borderRadius:12,border:'1.5px solid rgba(46,140,94,.5)',
+              background:'rgba(46,140,94,.12)',cursor:'pointer',textAlign:'left',
+              display:'flex',alignItems:'center',gap:14,transition:'.15s',fontFamily:'inherit'}}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(46,140,94,.22)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(46,140,94,.12)'}>
+            <div style={{width:44,height:44,borderRadius:10,background:'var(--green)',
+              display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22}}>
+              👤
+            </div>
+            <div style={{textAlign:'left'}}>
+              <div style={{color:'white',fontWeight:700,fontSize:15}}>施術記録を確認する</div>
+              <div style={{color:'rgba(255,255,255,.5)',fontSize:12,marginTop:3}}>研修生の方はこちら</div>
+            </div>
+            <div style={{marginLeft:'auto',color:'rgba(255,255,255,.4)',fontSize:20}}>›</div>
+          </button>
+
+          <button onClick={()=>onSelect('staff')}
+            style={{width:'100%',padding:'18px 20px',borderRadius:12,border:'1.5px solid rgba(255,255,255,.12)',
+              background:'rgba(255,255,255,.06)',cursor:'pointer',textAlign:'left',
+              display:'flex',alignItems:'center',gap:14,transition:'.15s',fontFamily:'inherit'}}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.12)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,.06)'}>
+            <div style={{width:44,height:44,borderRadius:10,background:'rgba(255,255,255,.15)',
+              display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22}}>
+              ⚙️
+            </div>
+            <div style={{textAlign:'left'}}>
+              <div style={{color:'white',fontWeight:700,fontSize:15}}>スタッフ管理画面</div>
+              <div style={{color:'rgba(255,255,255,.5)',fontSize:12,marginTop:3}}>スタッフ専用（パスワード必要）</div>
+            </div>
+            <div style={{marginLeft:'auto',color:'rgba(255,255,255,.4)',fontSize:20}}>›</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   APP LOCK SCREEN
+══════════════════════════════════════ */
+function AppLock({onUnlock}){
+  const [pw,setPw]=useState('');
+  const [err,setErr]=useState('');
+  const [show,setShow]=useState(false);
+
+  const attempt=()=>{
+    const adminPass=LS.get('nail_admin_pass',DEF_ADMIN_PASS);
+    if(pw===adminPass){onUnlock();}
+    else{setErr('パスワードが正しくありません');setPw('');}
+  };
+
+  return(
+    <div className="app-lock">
+      <div className="app-lock-box">
+        <div className="app-lock-gem">
+          <svg viewBox="0 0 16 16"><path d="M8 1L14 5L8 15L2 5Z"/></svg>
+        </div>
+        <div className="app-lock-title">ネイル研修管理</div>
+        <div className="app-lock-sub">パスワードを入力してください</div>
+        <div className="app-lock-label">パスワード</div>
+        <input className="app-lock-input" type={show?'text':'password'} value={pw}
+          onChange={e=>{setPw(e.target.value);setErr('');}}
+          onKeyDown={e=>e.key==='Enter'&&attempt()}
+          placeholder="••••••••" autoComplete="current-password"/>
+        <div className="app-lock-err">{err}</div>
+        <button className="app-lock-btn" onClick={attempt}>ログイン</button>
+        <button className="app-lock-show" onClick={()=>setShow(v=>!v)}>
+          {show?'パスワードを非表示':'パスワードを表示'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// customer mode removed
+
+/* ══════════════════════════════════════
+   STARS
+══════════════════════════════════════ */
+function Stars({val,onChange,readOnly,size=30}){
+  const [hov,setHov]=useState(0);
+  if(readOnly)return <span className="star-disp">{'★'.repeat(Math.round(val||0))}{'☆'.repeat(5-Math.round(val||0))}</span>;
+  return(
+    <div className="stars-inp">
+      {[1,2,3,4,5].map(i=>(
+        <button key={i} type="button" className={`star${(hov||val)>=i?' on':''}`}
+          style={{width:size,height:size,fontSize:size*0.5}}
+          onClick={()=>onChange(i)} onMouseEnter={()=>setHov(i)} onMouseLeave={()=>setHov(0)}>★</button>
+      ))}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   LOCATION CHIP
+══════════════════════════════════════ */
+function LocChip({locId,locations}){
+  const loc=locations.find(l=>l.id===locId)||{name:'不明',color:'#999',bg:'#eee'};
+  return <span className="lc-chip" style={{background:loc.bg,color:loc.color}}>{loc.name}</span>;
+}
+
+/* ══════════════════════════════════════
+   LIVE TIMER
+══════════════════════════════════════ */
+function LiveTimer({session,className}){
+  const [elapsed,setElapsed]=useState(session.elapsed||0);
+  const rafRef=useRef(null);
+  useEffect(()=>{
+    if(rafRef.current)cancelAnimationFrame(rafRef.current);
+    if(session.status==='running'&&session.timerStart){
+      const base=session.elapsed||0;
+      const tick=()=>{setElapsed(Math.floor((Date.now()-session.timerStart)/1000)+base);rafRef.current=requestAnimationFrame(tick)};
+      rafRef.current=requestAnimationFrame(tick);
+    } else {setElapsed(session.elapsed||0)}
+    return()=>{if(rafRef.current)cancelAnimationFrame(rafRef.current)};
+  },[session.status,session.timerStart,session.elapsed,session.id]);
+  return <span className={className}>{fmtT(elapsed)}</span>;
+}
+
+/* ══════════════════════════════════════
+   EVAL MODAL — simplified: result + note only
+══════════════════════════════════════ */
+function EvalModal({session,trainee,menus,onSave,onClose}){
+  const menuObj=menus.find(m=>m.name===session.menu);
+  const [result,setResult]=useState('');
+  const [note,setNote]=useState('');
+  const [menu,setMenu]=useState(session.menu||'');
+  const [checker,setChecker]=useState('');
+  const [targetMins,setTargetMins]=useState(menuObj?.targetMins||90);
+
+  const el=session.elapsed||0;
+  const elMin=Math.floor(el/60);
+  const diff=elMin-targetMins;
+
+  const survey=session.surveyData;
+  const consent=session.consentData;
+  const surveyAvg=survey?avgS(survey,SURVEY_QS.map(q=>q.k)):0;
+
+  return(
+    <div className="mbk" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="mbox">
+        <div className="mhead">
+          <div>
+            <div className="mhead-title">スタッフ評価入力</div>
+            <div className="mhead-sub">{trainee} — {session.menu||'メニュー未選択'}</div>
+          </div>
+          <button className="mclose" onClick={onClose}>✕</button>
+        </div>
+        <div className="mbody">
+
+          {/* Time */}
+          <div className="time-sum">
+            <div className="ts-item">
+              <div className="ts-lbl">施術時間</div>
+              <div className={`ts-val ${diff>0?'over':'ok'}`}>{fmtT(el)}</div>
+            </div>
+            <div className="ts-item">
+              <div className="ts-lbl">目標（分）</div>
+              <input type="number" value={targetMins} min={1}
+                style={{width:72,fontSize:16,fontWeight:700,fontFamily:"'DM Mono',monospace",textAlign:'center',border:'1px solid var(--bd2)',borderRadius:'var(--rs)',padding:'3px 5px',marginTop:2}}
+                onChange={e=>setTargetMins(+e.target.value)}/>
+            </div>
+            <div className="ts-item">
+              <div className="ts-lbl">差分</div>
+              <div className={`ts-val ${diff>0?'over':diff<0?'ok':'n'}`}>{diff>0?'+':''}{diff}分</div>
+            </div>
+          </div>
+
+          {/* Customer data summary */}
+          {consent&&(
+            <div className="cust-summary" style={{marginBottom:14}}>
+              <div className="sec-title" style={{marginBottom:5}}>承諾書情報（顧客入力済み）</div>
+              <div style={{fontSize:12,color:'var(--tx2)'}}>氏名：{consent.name}{consent.phone&&` ／ 電話：${consent.phone}`}</div>
+            </div>
+          )}
+          {survey&&(
+            <div className="survey-summary" style={{marginBottom:14}}>
+              <div className="sec-title" style={{marginBottom:5}}>顧客アンケート（回答済み）平均 {surveyAvg.toFixed(1)}</div>
+              <div style={{display:'flex',gap:12,flexWrap:'wrap',fontSize:12,color:'var(--tx2)'}}>
+                {SURVEY_QS.map(q=><span key={q.k}>{q.l}：<span style={{color:'#f59e0b'}}>{'★'.repeat(survey[q.k]||0)}</span></span>)}
+              </div>
+              {survey.comment&&<div style={{fontSize:12,color:'var(--tx2)',marginTop:5}}>コメント：{survey.comment}</div>}
+            </div>
+          )}
+
+          {/* Menu & checker (optional) */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:18}}>
+            <div className="fg">
+              <label className="flabel">施術メニュー</label>
+              <select value={menu} onChange={e=>setMenu(e.target.value)}>
+                <option value=''>選択</option>
+                {menus.map(m=><option key={m.id}>{m.name}</option>)}
+              </select>
+            </div>
+            <div className="fg">
+              <label className="flabel">チェック担当者</label>
+              <input value={checker} onChange={e=>setChecker(e.target.value)} placeholder="例：鈴木 先生"/>
+            </div>
+          </div>
+
+          {/* Result — big buttons */}
+          <div className="sec-title">合否判定</div>
+          <div className="result-btns">
+            <button className={`result-btn${result==='pass'?' sel-pass':''}`} onClick={()=>setResult('pass')}>
+              <div className="result-btn-label">✓ 合格</div>
+              <div className="result-btn-sub">Pass</div>
+            </button>
+            <button className={`result-btn${result==='review'?' sel-review':''}`} onClick={()=>setResult('review')}>
+              <div className="result-btn-label">△ 要確認</div>
+              <div className="result-btn-sub">Review</div>
+            </button>
+            <button className={`result-btn${result==='fail'?' sel-fail':''}`} onClick={()=>setResult('fail')}>
+              <div className="result-btn-label">✗ 不合格</div>
+              <div className="result-btn-sub">Fail</div>
+            </button>
+          </div>
+
+          {/* Note */}
+          <div className="fg">
+            <label className="flabel">備考・指導コメント</label>
+            <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="改善点、良かった点、次回への指示など" style={{minHeight:90}}/>
+          </div>
+        </div>
+        <div className="mfoot">
+          <button className="btn btn-ghost" onClick={onClose}>キャンセル</button>
+          <button className="btn btn-primary" disabled={!result} onClick={()=>onSave({result,note,menu,checker,targetMins})}>保存する</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   TIMER BOARD
+══════════════════════════════════════ */
+function TimerBoard({locId,trainees,menus,sessions,setSessions,records,onOpenEval,showToast}){
+  const todayRecs=records.filter(r=>r.date===today()&&r.locationId===locId).length;
+  const running=trainees.reduce((a,t)=>a+((sessions[`${locId}_${t.name}`]||[]).filter(s=>s.status==='running').length),0);
+  const sk=name=>`${locId}_${name}`;
+  const getSess=name=>sessions[sk(name)]||[];
+
+  const addSess=name=>{
+    const newS={id:uid(),menu:'',status:'idle',elapsed:0,timerStart:null,consentData:null,surveyData:null};
+    setSessions(p=>{const k=sk(name),cur=p[k]||[];if(cur.length>=5)return p;return{...p,[k]:[...cur,newS]}});
+    DB.upsertSession(locId,name,newS);
+  };
+  const changeMenu=(name,id,menu)=>{
+    const k=sk(name);
+    setSessions(p=>({...p,[k]:(p[k]||[]).map(s=>s.id===id?{...s,menu}:s)}));
+    const sess=(sessions[k]||[]).find(s=>s.id===id);
+    if(sess) DB.upsertSession(locId,name,{...sess,menu});
+  };
+  const manualStart=(name,id)=>{
+    const k=sk(name),now=Date.now();
+    setSessions(p=>({...p,[k]:(p[k]||[]).map(s=>s.id===id?{...s,status:'running',timerStart:now,elapsed:0}:s)}));
+    const sess=(sessions[k]||[]).find(s=>s.id===id);
+    if(sess) DB.upsertSession(locId,name,{...sess,status:'running',timerStart:now,elapsed:0});
+  };
+  const manualStop=(name,id)=>{
+    const k=sk(name);
+    setSessions(p=>({...p,[k]:(p[k]||[]).map(s=>{
+      if(s.id!==id)return s;
+      const el=s.timerStart?Math.floor((Date.now()-s.timerStart)/1000)+(s.elapsed||0):(s.elapsed||0);
+      const updated={...s,status:'done',elapsed:el,timerStart:null};
+      DB.upsertSession(locId,name,updated);
+      return updated;
+    })}));
+  };
+  const delSess=(name,id)=>{
+    const k=sk(name);
+    setSessions(p=>({...p,[k]:(p[k]||[]).filter(s=>s.id!==id)}));
+    DB.deleteSession(id);
+  };
+  const resetDay=()=>{if(!window.confirm('本日のタイマーをリセットしますか？'))return;const n={};Object.keys(sessions).filter(k=>!k.startsWith(locId+'_')).forEach(k=>n[k]=sessions[k]);setSessions(n)};
+
+  // customer URL display removed — use nail_form.html separately
+
+  return(
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+        <div>
+          <h2 style={{fontSize:18,fontWeight:700}}>本日の研修タイマー</h2>
+          <p style={{fontSize:12,color:'var(--tx3)',marginTop:2}}>
+            研修生 {trainees.length}名 ／ 本日 {todayRecs}件
+            {running>0&&<span style={{color:'var(--pink)',fontWeight:600,marginLeft:10}}>● {running}件 計測中</span>}
+          </p>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={resetDay}>リセット</button>
+      </div>
+
+      {trainees.length===0?(
+        <div className="empty-st">研修生が登録されていません。管理画面で追加してください。</div>
+      ):(
+        <div className="trainee-grid">
+          {trainees.map(t=>{
+            const ss=getSess(t.name);
+            const hasRun=ss.some(s=>s.status==='running');
+            const done=ss.filter(s=>s.status==='done'||s.status==='eval').length;
+            const ini=t.name.split(' ').map(p=>p[0]||'').join('').slice(0,2);
+            return(
+              <div key={t.name} className={`tc${hasRun?' run-active':''}`}>
+                <div className="tc-head">
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <div className="tc-avatar">{ini}</div>
+                    <div>
+                      <div className="tc-name">{t.name}</div>
+                      <div className="tc-code">
+                        {t.code?<span style={{background:'var(--sf)',border:'1px solid var(--bd)',borderRadius:4,padding:'1px 6px'}}>{t.code}</span>:'コード未設定'}
+                        <span style={{marginLeft:6}}>｜ {done}/{ss.length} 完了</span>
+                      </div>
+                    </div>
+                  </div>
+                  {hasRun&&<div className="pulse"/>}
+                </div>
+
+                <div className="tc-sessions">
+                  {ss.map((s,i)=>{
+                    const mObj=menus.find(m=>m.name===s.menu);
+                    const tSecs=(mObj?.targetMins||90)*60;
+                    const isRun=s.status==='running';
+                    const isDone=s.status==='done';
+                    const isEval=s.status==='eval';
+                    const curEl=isRun&&s.timerStart?Math.floor((Date.now()-s.timerStart)/1000)+(s.elapsed||0):(s.elapsed||0);
+                    const timerCls=`stimer${isRun?(curEl>tSecs?' over':' run'):isDone||isEval?' done':''}`;
+                    const rowCls=`srow-t${isRun?' t-run':isDone?' t-done':isEval?' t-eval':s.consentData?' t-wait':''}`;
+                    return(
+                      <div key={s.id} className={rowCls}>
+                        <div className="snum">{i+1}</div>
+                        {isDone||isEval?(
+                          <div className="smenu-txt">{s.menu||'未選択'}</div>
+                        ):(
+                          <select value={s.menu||''} onChange={e=>changeMenu(t.name,s.id,e.target.value)} disabled={isRun}
+                            style={{flex:1,fontSize:11,padding:'3px 5px',border:'1px solid var(--bd2)',borderRadius:'var(--rs)',background:'var(--sf)',color:'var(--tx)'}}>
+                            <option value=''>メニュー選択</option>
+                            {menus.map(m=><option key={m.id} value={m.name}>{m.name}</option>)}
+                          </select>
+                        )}
+                        <LiveTimer session={s} className={timerCls}/>
+                        {/* status pill */}
+                        {isEval&&<span className="s-status ss-eval">保存済</span>}
+                        {isDone&&<span className="s-status ss-done">停止</span>}
+                        {isRun&&<span className="s-status ss-running">● 計測中</span>}
+                        {!isRun&&!isDone&&!isEval&&s.consentData&&<span className="s-status ss-consent">承諾済</span>}
+                        <div className="sbtns">
+                          {isEval?null
+                          :isDone?<button className="btn btn-xs btn-amber" onClick={()=>onOpenEval(s,t.name)}>評価入力</button>
+                          :isRun?<button className="btn btn-xs btn-pink" onClick={()=>manualStop(t.name,s.id)}>■ 停止</button>
+                          :<button className="btn btn-xs btn-green" onClick={()=>manualStart(t.name,s.id)} disabled={!s.menu}>▶</button>}
+                          {!isRun&&!isDone&&!isEval&&<button className="btn btn-xs btn-danger" onClick={()=>delSess(t.name,s.id)}>×</button>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <button className="add-s-btn" disabled={ss.length>=5} onClick={()=>addSess(t.name)}>
+                    ＋ 施術を追加{ss.length>=5?' (上限)':''}
+                  </button>
+                </div>
+
+
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{marginTop:14,padding:'11px 14px',background:'var(--sf)',border:'1px solid var(--bd)',borderRadius:'var(--r)',fontSize:12,color:'var(--tx2)',lineHeight:1.8}}>
+        <strong>顧客フォームの流れ：</strong>
+        顧客のスマホで <strong>nail_form.html</strong>（顧客フォーム）を開いてもらう → スタッフコードを入力 → 承諾書送信でタイマー自動スタート → アンケート送信でタイマー自動停止 → スタッフが「評価入力」から合否・備考を入力
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   CUSTOMER PAGE — shared form, staff code input
+══════════════════════════════════════ */
+/* ══════════════════════════════════════
+   DETAIL PAGE
+══════════════════════════════════════ */
+function DetailPage({rec,onBack,onUpdate,locations}){
+  const [editMode,setEditMode]=useState(!rec.result);
+  const [result,setResult]=useState(rec.result||'');
+  const [note,setNote]=useState(rec.note||'');
+  const [saving,setSaving]=useState(false);
+  const surveyAvg=avgS(rec.surveyData,SURVEY_QS.map(q=>q.k));
+  const ckAvg=avgS(rec.ck,CK_CRIT.map(c=>c.k));
+  const elMin=Math.floor((rec.elapsed||0)/60);
+  const diff=rec.targetMins?elMin-rec.targetMins:null;
+  const rb=v=>{const o=RESULTS.find(r=>r.v===v);return o?<span className={`bdg ${o.c}`}>{o.l}</span>:<span className="bdg bdg-none">未入力</span>};
+  const doSave=()=>{setSaving(true);setTimeout(()=>{onUpdate(rec.id,{result,note});setEditMode(false);setSaving(false)},250)};
+
+  return(
+    <div>
+      <div style={{marginBottom:12}}><button className="btn btn-ghost btn-sm" onClick={onBack}>← 一覧に戻る</button></div>
+
+      <div className="detail-hero">
+        <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:5}}>
+          <div className="detail-name">{rec.trainee}</div>
+          <LocChip locId={rec.locationId} locations={locations}/>
+          {rec.staffCode&&<span style={{fontSize:11,fontFamily:"'DM Mono',monospace",color:'var(--tx3)',background:'var(--sf2)',padding:'1px 7px',borderRadius:4}}>{rec.staffCode}</span>}
+        </div>
+        <div className="detail-meta">
+          <span>{rec.date}</span>
+          <span style={{color:'var(--bd2)'}}>|</span>
+          <span>{rec.menu||'—'}</span>
+          {rec.checker&&<><span style={{color:'var(--bd2)'}}>|</span><span>担当：{rec.checker}</span></>}
+          {rec.consentData?.name&&<><span style={{color:'var(--bd2)'}}>|</span><span>顧客：{rec.consentData.name}</span></>}
+        </div>
+        <div className="detail-grid">
+          <div className="dg-item"><div className="dg-lbl">施術時間</div><div className={`dg-val ${diff!==null&&diff>0?'over':'ok'}`}>{fmtT(rec.elapsed||0)}</div></div>
+          <div className="dg-item"><div className="dg-lbl">目標時間</div><div className="dg-val">{rec.targetMins?rec.targetMins+'分':'—'}</div></div>
+          <div className="dg-item"><div className="dg-lbl">差分</div><div className={`dg-val ${diff!==null?(diff>0?'over':'ok'):'n'}`}>{diff!==null?(diff>0?'+':'')+diff+'分':'—'}</div></div>
+          <div className="dg-item"><div className="dg-lbl">顧客評価 平均</div><div className="dg-val">{surveyAvg>0?surveyAvg.toFixed(1):'—'}</div></div>
+        </div>
+      </div>
+
+      <div className="detail-body">
+        {/* Survey */}
+        <div className="card card-p">
+          <div className="sec-title">顧客アンケート {surveyAvg>0?`— 平均 ${surveyAvg.toFixed(1)}`:''}</div>
+          {rec.surveyData?(
+            <>
+              <table className="score-table">
+                <thead><tr><th>項目</th><th>評価</th><th>点</th></tr></thead>
+                <tbody>
+                  {SURVEY_QS.map(q=><tr key={q.k}><td>{q.l}</td><td><Stars val={rec.surveyData[q.k]||0} readOnly/></td><td className="mono">{rec.surveyData[q.k]||'—'}</td></tr>)}
+                  <tr style={{background:'var(--sf2)'}}><td style={{fontWeight:600}}>平均</td><td><Stars val={surveyAvg} readOnly/></td><td className="mono" style={{fontWeight:700}}>{surveyAvg>0?surveyAvg.toFixed(1):'—'}</td></tr>
+                </tbody>
+              </table>
+              {rec.surveyData.comment&&<div style={{marginTop:9,padding:'8px 10px',background:'var(--sf2)',borderRadius:'var(--rs)',fontSize:12,color:'var(--tx2)'}}>コメント：{rec.surveyData.comment}</div>}
+            </>
+          ):<p style={{fontSize:12,color:'var(--tx3)'}}>アンケート未回答</p>}
+        </div>
+
+        {/* Consent */}
+        <div className="card card-p">
+          <div className="sec-title">承諾書情報</div>
+          {rec.consentData?(
+            <div style={{fontSize:13,color:'var(--tx2)',lineHeight:2}}>
+              <div>氏名：{rec.consentData.name}</div>
+              {rec.consentData.phone&&<div>電話：{rec.consentData.phone}</div>}
+              <div style={{fontSize:11,color:'var(--tx3)',marginTop:4}}>受付：{rec.consentData.submittedAt?new Date(rec.consentData.submittedAt).toLocaleString('ja-JP'):''}</div>
+            </div>
+          ):<p style={{fontSize:12,color:'var(--tx3)'}}>承諾書データなし</p>}
+        </div>
+      </div>
+
+      {/* Staff evaluation */}
+      <div className={`inst-box${rec.result?' done-e':' pending'}`} style={{marginTop:12}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+          <div>
+            <div style={{fontWeight:700,fontSize:14,marginBottom:4}}>スタッフ評価</div>
+            {rec.result?<span style={{display:'inline-flex',alignItems:'center',gap:5,padding:'2px 10px',borderRadius:20,fontSize:11,fontWeight:500,background:'var(--green-l)',color:'var(--green)'}}>✓ 評価済み</span>
+            :<span style={{display:'inline-flex',alignItems:'center',gap:5,padding:'2px 10px',borderRadius:20,fontSize:11,fontWeight:500,background:'var(--amber-l)',color:'var(--amber)'}}>⏳ 評価待ち</span>}
+          </div>
+          {rec.result&&!editMode&&<button className="btn btn-ghost btn-sm" onClick={()=>setEditMode(true)}>編集</button>}
+        </div>
+
+        {editMode?(
+          <div>
+            <div className="sec-title">合否判定</div>
+            <div className="result-btns" style={{marginBottom:16}}>
+              <button className={`result-btn${result==='pass'?' sel-pass':''}`} onClick={()=>setResult('pass')}>
+                <div className="result-btn-label">✓ 合格</div><div className="result-btn-sub">Pass</div>
+              </button>
+              <button className={`result-btn${result==='review'?' sel-review':''}`} onClick={()=>setResult('review')}>
+                <div className="result-btn-label">△ 要確認</div><div className="result-btn-sub">Review</div>
+              </button>
+              <button className={`result-btn${result==='fail'?' sel-fail':''}`} onClick={()=>setResult('fail')}>
+                <div className="result-btn-label">✗ 不合格</div><div className="result-btn-sub">Fail</div>
+              </button>
+            </div>
+            <div className="fg" style={{marginBottom:14}}>
+              <label className="flabel">備考・指導コメント</label>
+              <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="改善点、次回への課題など"/>
+            </div>
+            <div style={{display:'flex',gap:7}}>
+              {rec.result&&<button className="btn btn-ghost" onClick={()=>setEditMode(false)}>キャンセル</button>}
+              <button className="btn btn-primary" disabled={!result||saving} onClick={doSave}>{saving?'保存中…':'保存する'}</button>
+            </div>
+          </div>
+        ):(
+          <div>
+            <div className="inst-result-display">{rb(rec.result)}</div>
+            {rec.note&&(
+              <div className="inst-note-display">
+                <div className="inst-note-label">備考・指導コメント</div>
+                <p style={{fontSize:13,lineHeight:1.75}}>{rec.note}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   LIST SCREEN
+══════════════════════════════════════ */
+function ListScreen({records,onDelete,onOpenDetail,locations}){
+  const [search,setSearch]=useState('');
+  const [fLoc,setFLoc]=useState('');
+  const [fResult,setFResult]=useState('');
+  const [fDate,setFDate]=useState('');
+  const [fEval,setFEval]=useState('');
+
+  const filtered=records.filter(r=>{
+    const s=search.toLowerCase();
+    return(!search||[r.trainee,r.menu||'',r.checker||'',r.staffCode||''].join(' ').toLowerCase().includes(s))
+      &&(!fLoc||r.locationId===fLoc)
+      &&(!fResult||r.result===fResult)
+      &&(!fDate||r.date===fDate)
+      &&(!fEval||(fEval==='done'?!!r.result:!r.result));
+  }).sort((a,b)=>b.savedAt-a.savedAt);
+
+  const exportCSV=()=>{
+    const hdr=['日付','拠点','研修生','コード','メニュー','施術時間(分)','目標(分)','差分(分)','顧客評価','合否','担当者','顧客氏名','備考'];
+    const rows=filtered.map(r=>{
+      const loc=locations.find(l=>l.id===r.locationId);
+      const sAvg=avgS(r.surveyData,SURVEY_QS.map(q=>q.k));
+      return[r.date,loc?.name||'',r.trainee,r.staffCode||'',r.menu||'',
+        Math.floor((r.elapsed||0)/60),r.targetMins||'',
+        r.targetMins?Math.floor((r.elapsed||0)/60)-r.targetMins:'',
+        sAvg>0?sAvg.toFixed(1):'',
+        RESULTS.find(x=>x.v===r.result)?.l||'',
+        r.checker||'',r.consentData?.name||'',
+        (r.note||'').replace(/,/g,'、')];
+    });
+    const csv=[hdr,...rows].map(r=>r.join(',')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`nail_${today()}.csv`;a.click();
+  };
+
+  const rb=v=>{const o=RESULTS.find(x=>x.v===v);return o?<span className={`bdg ${o.c}`}>{o.l}</span>:<span className="bdg bdg-none">—</span>};
+
+  return(
+    <div>
+      <div className="list-bar">
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="研修生・コード・メニューで検索" style={{width:200}}/>
+        <select value={fLoc} onChange={e=>setFLoc(e.target.value)}>
+          <option value=''>全拠点</option>{locations.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+        <select value={fResult} onChange={e=>setFResult(e.target.value)}>
+          <option value=''>全判定</option>{RESULTS.map(r=><option key={r.v} value={r.v}>{r.l}</option>)}
+        </select>
+        <select value={fEval} onChange={e=>setFEval(e.target.value)}>
+          <option value=''>全状態</option>
+          <option value='done'>評価済み</option>
+          <option value='pending'>評価待ち</option>
+        </select>
+        <input type="date" value={fDate} onChange={e=>setFDate(e.target.value)} style={{width:138}}/>
+        <div className="sp"/>
+        <span style={{fontSize:11,color:'var(--tx3)'}}>{filtered.length}件</span>
+        <button className="btn btn-ghost btn-sm" onClick={exportCSV}>↓ CSV</button>
+      </div>
+      <div className="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th><th>拠点</th><th>研修生</th><th>コード</th><th>メニュー</th>
+              <th>施術時間</th><th>差分</th><th>顧客評価</th><th>合否</th><th style={{width:80}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length===0?(
+              <tr><td colSpan={10}><div className="empty-st">📭 記録がありません</div></td></tr>
+            ):filtered.map(r=>{
+              const mins=Math.floor((r.elapsed||0)/60);
+              const diff=r.targetMins?mins-r.targetMins:null;
+              const sAvg=avgS(r.surveyData,SURVEY_QS.map(q=>q.k));
+              return(
+                <tr key={r.id} style={{cursor:'pointer'}} onClick={()=>onOpenDetail(r.id)}>
+                  <td className="mono">{r.date}</td>
+                  <td><LocChip locId={r.locationId} locations={locations}/></td>
+                  <td style={{fontWeight:500,whiteSpace:'nowrap'}}>{r.trainee}</td>
+                  <td><span style={{fontSize:10,fontFamily:"'DM Mono',monospace",color:'var(--tx3)',background:'var(--sf2)',padding:'1px 6px',borderRadius:3}}>{r.staffCode||'—'}</span></td>
+                  <td style={{color:'var(--tx2)',maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.menu||'—'}</td>
+                  <td className="mono">{fmtT(r.elapsed||0)}</td>
+                  <td className="mono" style={{color:diff>0?'var(--red)':diff<0?'var(--green)':'var(--tx2)'}}>
+                    {diff!==null?(diff>0?'+':'')+diff+'分':'—'}
+                  </td>
+                  <td><span style={{color:'#f59e0b'}}>{sAvg>0?'★'.repeat(Math.round(sAvg)):''}</span><span style={{color:'var(--tx2)',fontSize:11}}>{sAvg>0?' '+sAvg.toFixed(1):'—'}</span></td>
+                  <td>{r.result?rb(r.result):<span className="bdg bdg-pending">待ち</span>}</td>
+                  <td onClick={e=>e.stopPropagation()}>
+                    <div style={{display:'flex',gap:3}}>
+                      <button className="btn btn-xs btn-ghost" onClick={()=>onOpenDetail(r.id)}>詳細</button>
+                      <button className="btn btn-xs btn-danger" onClick={()=>onDelete(r.id)}>削除</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   STATS
+══════════════════════════════════════ */
+function StatsScreen({records,locations}){
+  const [fLoc,setFLoc]=useState('');
+  const d=fLoc?records.filter(r=>r.locationId===fLoc):records;
+  const n=d.length;
+  const wt=d.filter(r=>r.elapsed>0);
+  const avgTime=wt.length?Math.round(wt.reduce((a,r)=>a+(r.elapsed||0),0)/wt.length/60):null;
+  const ws=d.filter(r=>r.surveyData);
+  const avgS2=ws.length?(ws.reduce((a,r)=>a+avgS(r.surveyData,SURVEY_QS.map(q=>q.k)),0)/ws.length).toFixed(1):null;
+  const passN=d.filter(r=>r.result==='pass').length;
+  const passRate=n?Math.round(passN/n*100):null;
+
+  const byLoc={};locations.forEach(l=>{byLoc[l.id]={name:l.name,color:l.color,cnt:0}});
+  d.forEach(r=>{if(byLoc[r.locationId])byLoc[r.locationId].cnt++});
+  const locRows=Object.values(byLoc).filter(x=>x.cnt>0);
+  const maxLC=Math.max(...locRows.map(x=>x.cnt),1);
+
+  const byT={};d.forEach(r=>{if(!byT[r.trainee])byT[r.trainee]={cnt:0,pass:0};byT[r.trainee].cnt++;if(r.result==='pass')byT[r.trainee].pass++});
+  const tRows=Object.entries(byT).map(([name,x])=>({name,rate:x.cnt?Math.round(x.pass/x.cnt*100):0,cnt:x.cnt})).sort((a,b)=>b.rate-a.rate).slice(0,10);
+
+  const byMenu={};d.forEach(r=>{if(r.menu&&r.elapsed>0){if(!byMenu[r.menu])byMenu[r.menu]={s:0,n:0};byMenu[r.menu].s+=r.elapsed;byMenu[r.menu].n++}});
+  const mRows=Object.entries(byMenu).map(([name,x])=>({name,time:Math.round(x.s/x.n/60)})).sort((a,b)=>b.time-a.time);
+  const maxM=Math.max(...mRows.map(r=>r.time),1);
+
+  const byDate={};d.forEach(r=>{if(!byDate[r.date])byDate[r.date]=0;byDate[r.date]++});
+  const dRows=Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0])).slice(-10);
+  const maxD=Math.max(...dRows.map(r=>r[1]),1);
+
+  return(
+    <div>
+      <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:13}}>
+        <span style={{fontSize:13,fontWeight:500}}>絞り込み：</span>
+        <select value={fLoc} onChange={e=>setFLoc(e.target.value)} style={{fontSize:12,padding:'5px 9px',border:'1px solid var(--bd2)',borderRadius:'var(--rs)',background:'var(--sf)'}}>
+          <option value=''>全拠点</option>{locations.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+        <span style={{fontSize:11,color:'var(--tx3)'}}>{n}件</span>
+      </div>
+      <div className="sg">
+        <div className="sc"><div className="sc-lbl">総施術記録</div><div className="sc-val">{n}</div><div className="sc-sub">件</div></div>
+        <div className="sc"><div className="sc-lbl">平均施術時間</div><div className="sc-val">{avgTime??'—'}</div><div className="sc-sub">分</div></div>
+        <div className="sc"><div className="sc-lbl">顧客評価 平均</div><div className="sc-val">{avgS2??'—'}</div><div className="sc-sub">/ 5.0</div></div>
+        <div className="sc"><div className="sc-lbl">合格率</div><div className="sc-val">{passRate!==null?passRate+'%':'—'}</div><div className="sc-sub">{passN}件 / {n}件</div></div>
+      </div>
+      <div className="two-col">
+        <div className="cc"><div className="cc-title">拠点別 施術件数</div>
+          {locRows.length===0?<p style={{fontSize:12,color:'var(--tx3)'}}>データなし</p>:
+          <div className="bar-chart">{locRows.map(x=><div key={x.name} className="br">
+            <div className="bn">{x.name}</div><div className="bt"><div className="bf" style={{width:`${(x.cnt/maxLC*100).toFixed(0)}%`,background:x.color}}/></div>
+            <div className="bv">{x.cnt}件</div>
+          </div>)}</div>}
+        </div>
+        <div className="cc"><div className="cc-title">研修生別 合格率（上位10名）</div>
+          {tRows.length===0?<p style={{fontSize:12,color:'var(--tx3)'}}>データなし</p>:
+          <div className="bar-chart">{tRows.map(r=><div key={r.name} className="br">
+            <div className="bn">{r.name}</div><div className="bt"><div className="bf bf-green" style={{width:`${r.rate}%`}}/></div>
+            <div className="bv" style={{color:'var(--green)'}}>{r.rate}%</div>
+          </div>)}</div>}
+        </div>
+      </div>
+      <div className="two-col">
+        <div className="cc"><div className="cc-title">メニュー別 平均施術時間</div>
+          {mRows.length===0?<p style={{fontSize:12,color:'var(--tx3)'}}>データなし</p>:
+          <div className="bar-chart">{mRows.map(r=><div key={r.name} className="br">
+            <div className="bn">{r.name.length>9?r.name.slice(0,8)+'…':r.name}</div>
+            <div className="bt"><div className="bf bf-amber" style={{width:`${(r.time/maxM*100).toFixed(0)}%`}}/></div>
+            <div className="bv" style={{color:'var(--amber)'}}>{r.time}分</div>
+          </div>)}</div>}
+        </div>
+        <div className="cc"><div className="cc-title">日別 施術件数（直近10日）</div>
+          {dRows.length===0?<p style={{fontSize:12,color:'var(--tx3)'}}>データなし</p>:
+          <div className="bar-chart">{dRows.map(([date,cnt])=><div key={date} className="br">
+            <div className="bn" style={{fontFamily:"'DM Mono',monospace",fontSize:10}}>{date}</div>
+            <div className="bt"><div className="bf bf-acc" style={{width:`${(cnt/maxD*100).toFixed(0)}%`}}/></div>
+            <div className="bv">{cnt}件</div>
+          </div>)}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   ADMIN LOCK SCREEN
+══════════════════════════════════════ */
+function AdminLock({onUnlock,showToast}){
+  const [pw,setPw]=useState('');
+  const [err,setErr]=useState('');
+  const [show,setShow]=useState(false);
+  const adminPass=LS.get('nail_admin_pass',DEF_ADMIN_PASS);
+
+  const attempt=()=>{
+    if(pw===adminPass){onUnlock();setErr('');}
+    else{setErr('パスワードが正しくありません');setPw('');}
+  };
+
+  return(
+    <div className="admin-lock">
+      <div className="lock-box">
+        <div className="lock-icon">🔒</div>
+        <div className="lock-title">管理設定</div>
+        <div className="lock-sub">管理設定を開くにはパスワードが必要です</div>
+        <input className="lock-input" type={show?'text':'password'} value={pw}
+          onChange={e=>{setPw(e.target.value);setErr('');}}
+          onKeyDown={e=>e.key==='Enter'&&attempt()}
+          placeholder="パスワードを入力"/>
+        <div className="lock-err">{err}</div>
+        <button className="lock-btn" onClick={attempt}>確認</button>
+        <button onClick={()=>setShow(v=>!v)} style={{marginTop:10,background:'none',border:'none',fontSize:12,color:'var(--tx3)',cursor:'pointer'}}>
+          {show?'非表示にする':'パスワードを表示する'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   URL GUIDE
+══════════════════════════════════════ */
+function UrlGuide(){
+  const base = window.location.origin;
+  const baseStaff = window.location.origin + window.location.pathname;
+  const formUrl    = base + '/nail_form.html';
+  const studentUrl = baseStaff;
+
+  const copy = (url, label) => {
+    navigator.clipboard?.writeText(url)
+      .then(()=>alert(label + ' のURLをコピーしました'))
+      .catch(()=>alert('URL: ' + url));
+  };
+
+  const urlRow = (label, icon, url, desc, color, bg) => (
+    <div style={{background:bg,border:`1px solid ${color}30`,borderRadius:'var(--rs)',padding:'14px 16px',marginBottom:10}}>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+        <span style={{fontSize:18}}>{icon}</span>
+        <div style={{fontWeight:700,fontSize:13,color}}>{label}</div>
+      </div>
+      <div style={{fontSize:11,color:'var(--tx2)',marginBottom:8,lineHeight:1.6}}>{desc}</div>
+      <div style={{background:'var(--sf)',border:'1px solid var(--bd)',borderRadius:'var(--rs)',padding:'7px 10px',
+        fontSize:11,fontFamily:"'DM Mono',monospace",wordBreak:'break-all',color:'var(--tx2)',marginBottom:8}}>
+        {url}
+      </div>
+      <div style={{display:'flex',gap:6}}>
+        <button className="btn btn-xs btn-ghost" onClick={()=>copy(url,label)}>📋 コピー</button>
+        <a href={url} target="_blank" rel="noopener" className="btn btn-xs btn-ghost">↗ 開く</a>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="admin-sec" style={{marginTop:12}}>
+      <div className="admin-title" style={{marginBottom:14}}>🔗 各ページのURL</div>
+      <p style={{fontSize:12,color:'var(--tx2)',marginBottom:14,lineHeight:1.7}}>
+        公開したURLをそのままQRコード化してください。顧客・研修生はトップ画面から目的のページを選べます。
+      </p>
+      {urlRow(
+        '顧客フォーム（承諾書・アンケート）', '📋',
+        formUrl,
+        'QRコードに使用するURL。顧客のスマホで開いてもらいます。',
+        'var(--pink)', 'var(--pink-l)'
+      )}
+      {urlRow(
+        '研修生閲覧ページ', '👤',
+        studentUrl,
+        '研修生が自分の施術記録・評価を確認するURL。スタッフコードでログインします。',
+        'var(--green)', 'var(--green-l)'
+      )}
+      <div style={{background:'var(--sf2)',borderRadius:'var(--rs)',padding:'10px 12px',fontSize:11,color:'var(--tx3)',lineHeight:1.7}}>
+        💡 このスタッフ管理画面のURLは社内のみで共有してください。
+      </div>
+    </div>
+  );
+}
+
+/* パスワード変更 */
+function AdminPassChange({showToast}){
+  const [cur,setCur]=useState('');
+  const [n1,setN1]=useState('');
+  const [n2,setN2]=useState('');
+  const [err,setErr]=useState('');
+  const [show,setShow]=useState(false);
+  const save=()=>{
+    const adminPass=LS.get('nail_admin_pass',DEF_ADMIN_PASS);
+    if(cur!==adminPass){setErr('現在のパスワードが正しくありません');return;}
+    if(n1.length<4){setErr('新しいパスワードは4文字以上にしてください');return;}
+    if(n1!==n2){setErr('新しいパスワードが一致しません');return;}
+    LS.set('nail_admin_pass',n1);
+    setCur('');setN1('');setN2('');setErr('');
+    showToast('パスワードを変更しました');
+  };
+  return(
+    <div className="admin-sec" style={{marginTop:12}}>
+      <div className="admin-title">管理パスワードの変更</div>
+      <div style={{display:'flex',flexDirection:'column',gap:8,maxWidth:360}}>
+        <div className="fg"><label className="flabel">現在のパスワード</label>
+          <input type={show?'text':'password'} value={cur} onChange={e=>{setCur(e.target.value);setErr('');}} style={{letterSpacing:'.08em'}}/>
+        </div>
+        <div className="fg"><label className="flabel">新しいパスワード（4文字以上）</label>
+          <input type={show?'text':'password'} value={n1} onChange={e=>{setN1(e.target.value);setErr('');}} style={{letterSpacing:'.08em'}}/>
+        </div>
+        <div className="fg"><label className="flabel">新しいパスワード（確認）</label>
+          <input type={show?'text':'password'} value={n2} onChange={e=>{setN2(e.target.value);setErr('');}} style={{letterSpacing:'.08em'}}/>
+        </div>
+        {err&&<div style={{fontSize:12,color:'var(--red)'}}>{err}</div>}
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <button className="btn btn-sm btn-primary" onClick={save}>変更する</button>
+          <button onClick={()=>setShow(v=>!v)} style={{background:'none',border:'none',fontSize:12,color:'var(--tx3)',cursor:'pointer'}}>{show?'非表示':'表示'}</button>
+        </div>
+        <div style={{fontSize:11,color:'var(--tx3)'}}>初期パスワード：{DEF_ADMIN_PASS}（変更推奨）</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   ADMIN SCREEN
+══════════════════════════════════════ */
+function AdminScreen({locations,setLocations,menus,setMenus,traineesByLoc,setTraineesByLoc,consentItems,setConsentItems,showToast}){
+  const [selLoc,setSelLoc]=useState(locations[0]?.id||'');
+  const [newMenu,setNewMenu]=useState('');
+  const [newMTime,setNewMTime]=useState(90);
+  const [editMenu,setEditMenu]=useState(null);
+  const [newTName,setNewTName]=useState('');
+  const [newTCode,setNewTCode]=useState('');
+  const [editT,setEditT]=useState(null);
+  const [editLoc,setEditLoc]=useState(null);
+  const [newCI,setNewCI]=useState('');
+
+  const cur=traineesByLoc[selLoc]||[];
+  const locColors=[{c:'#d4607a',bg:'#fceef2'},{c:'#2674b0',bg:'#e8f3fb'},{c:'#2e8c5e',bg:'#e8f5ee'},{c:'#c47d20',bg:'#fdf3e3'},{c:'#7c3aed',bg:'#f0ebff'},{c:'#6b6558',bg:'#f1ede8'}];
+
+  return(
+    <div>
+      {/* Locations */}
+      <div className="admin-sec" style={{marginBottom:12}}>
+        <div className="admin-title">拠点設定</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(190px,1fr))',gap:8,marginBottom:6}}>
+          {locations.map(loc=>(
+            <div key={loc.id} className="li" style={{borderLeft:`3px solid ${loc.color}`}}>
+              {editLoc?.id===loc.id?(
+                <div style={{flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                  <input value={editLoc.name} onChange={e=>setEditLoc(f=>({...f,name:e.target.value}))} placeholder="拠点名" style={{fontSize:13}}/>
+                  <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                    {locColors.map(({c,bg})=>(
+                      <button key={c} onClick={()=>setEditLoc(f=>({...f,color:c,bg}))}
+                        style={{width:20,height:20,borderRadius:'50%',background:c,border:editLoc.color===c?'2px solid #333':'2px solid transparent',cursor:'pointer',flexShrink:0}}/>
+                    ))}
+                  </div>
+                  <div style={{display:'flex',gap:5}}>
+                    <button className="btn btn-xs btn-primary" onClick={()=>{setLocations(p=>p.map(l=>l.id===editLoc.id?{...l,...editLoc}:l));setEditLoc(null);showToast('更新しました')}}>保存</button>
+                    <button className="btn btn-xs btn-ghost" onClick={()=>setEditLoc(null)}>×</button>
+                  </div>
+                </div>
+              ):(
+                <>
+                  <div className="loc-color-dot" style={{background:loc.color}}/>
+                  <div className="li-main"><div style={{fontWeight:600}}>{loc.name}</div></div>
+                  <button className="btn btn-xs btn-ghost" style={{flexShrink:0}} onClick={()=>setEditLoc({...loc})}>編集</button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="admin-grid">
+        {/* Menus */}
+        <div className="admin-sec">
+          <div className="admin-title">施術メニュー</div>
+          <div style={{display:'flex',flexDirection:'column',gap:5,marginBottom:10,maxHeight:260,overflowY:'auto'}}>
+            {menus.map(m=>(
+              <div key={m.id} className="li">
+                {editMenu?.id===m.id?(
+                  <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
+                    <input value={editMenu.name} onChange={e=>setEditMenu(f=>({...f,name:e.target.value}))} style={{fontSize:12}}/>
+                    <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                      <input type="number" value={editMenu.targetMins} onChange={e=>setEditMenu(f=>({...f,targetMins:e.target.value}))} style={{width:60,fontSize:12}}/>
+                      <span style={{fontSize:11,color:'var(--tx2)'}}>分（目標）</span>
+                      <button className="btn btn-xs btn-primary" onClick={()=>{setMenus(p=>p.map(m=>m.id===editMenu.id?{...m,...editMenu}:m));setEditMenu(null);showToast('更新しました')}}>保存</button>
+                      <button className="btn btn-xs btn-ghost" onClick={()=>setEditMenu(null)}>×</button>
+                    </div>
+                  </div>
+                ):(
+                  <>
+                    <div className="li-main"><div>{m.name}</div><div className="li-sub">目標：{m.targetMins}分</div></div>
+                    <button className="btn btn-xs btn-ghost" style={{flexShrink:0}} onClick={()=>setEditMenu({...m})}>編集</button>
+                    <button className="btn btn-xs btn-danger" style={{flexShrink:0}} onClick={()=>{if(window.confirm('削除しますか？'))setMenus(p=>p.filter(x=>x.id!==m.id))}}>削除</button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{background:'var(--sf2)',borderRadius:'var(--rs)',padding:10}}>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--tx2)',marginBottom:6}}>追加</div>
+            <div style={{display:'flex',gap:5,alignItems:'center'}}>
+              <input value={newMenu} onChange={e=>setNewMenu(e.target.value)} placeholder="メニュー名" style={{flex:1,fontSize:12}} onKeyDown={e=>e.key==='Enter'&&(newMenu.trim()&&(setMenus(p=>[...p,{id:uid(),name:newMenu.trim(),targetMins:+newMTime}]),setNewMenu(''),showToast('追加しました')))}/>
+              <input type="number" value={newMTime} onChange={e=>setNewMTime(e.target.value)} style={{width:55,fontSize:12}}/>
+              <span style={{fontSize:11,color:'var(--tx2)',whiteSpace:'nowrap'}}>分</span>
+              <button className="btn btn-xs btn-primary" onClick={()=>{if(newMenu.trim()){setMenus(p=>[...p,{id:uid(),name:newMenu.trim(),targetMins:+newMTime}]);setNewMenu('');showToast('追加しました')}}}>追加</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Trainees */}
+        <div className="admin-sec">
+          <div className="admin-title">
+            研修生名簿
+            <select value={selLoc} onChange={e=>setSelLoc(e.target.value)} style={{fontSize:11,padding:'2px 7px',fontWeight:400,marginLeft:'auto'}}>
+              {locations.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:5,marginBottom:8,maxHeight:230,overflowY:'auto'}}>
+            {cur.map(t=>(
+              <div key={t.name} className="li">
+                {editT?.orig===t.name?(
+                  <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
+                    <div style={{display:'flex',gap:5}}>
+                      <input value={editT.name} onChange={e=>setEditT(f=>({...f,name:e.target.value}))} style={{flex:1,fontSize:12}} placeholder="氏名"/>
+                      <input value={editT.code} onChange={e=>setEditT(f=>({...f,code:e.target.value.toUpperCase()}))} style={{width:85,fontSize:12,fontFamily:"'DM Mono',monospace"}} placeholder="コード"/>
+                    </div>
+                    <div style={{display:'flex',gap:5}}>
+                      <button className="btn btn-xs btn-primary" onClick={()=>{setTraineesByLoc(p=>({...p,[selLoc]:(p[selLoc]||[]).map(x=>x.name===editT.orig?{name:editT.name,code:editT.code}:x)}));setEditT(null);showToast('更新しました')}}>保存</button>
+                      <button className="btn btn-xs btn-ghost" onClick={()=>setEditT(null)}>×</button>
+                    </div>
+                  </div>
+                ):(
+                  <>
+                    <div className="li-main"><div style={{fontWeight:500}}>{t.name}</div><div className="li-sub">{t.code||'コード未設定'}</div></div>
+                    <button className="btn btn-xs btn-ghost" style={{flexShrink:0}} onClick={()=>setEditT({orig:t.name,name:t.name,code:t.code||''})}>編集</button>
+                    <button className="btn btn-xs btn-danger" style={{flexShrink:0}} onClick={()=>{if(window.confirm(`「${t.name}」を削除しますか？`))setTraineesByLoc(p=>({...p,[selLoc]:(p[selLoc]||[]).filter(x=>x.name!==t.name)}))}}>削除</button>
+                  </>
+                )}
+              </div>
+            ))}
+            {cur.length===0&&<p style={{fontSize:12,color:'var(--tx3)',padding:'6px 0'}}>研修生が登録されていません</p>}
+          </div>
+          <div style={{background:'var(--sf2)',borderRadius:'var(--rs)',padding:10}}>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--tx2)',marginBottom:6}}>追加</div>
+            <div style={{display:'flex',gap:5,marginBottom:5}}>
+              <input value={newTName} onChange={e=>setNewTName(e.target.value)} placeholder="氏名" style={{flex:1,fontSize:12}}/>
+              <input value={newTCode} onChange={e=>setNewTCode(e.target.value.toUpperCase())} placeholder="スタッフコード" style={{width:90,fontSize:12,fontFamily:"'DM Mono',monospace"}}/>
+            </div>
+            <button className="btn btn-xs btn-primary" onClick={()=>{if(!newTName.trim())return;setTraineesByLoc(p=>({...p,[selLoc]:[...(p[selLoc]||[]),{name:newTName.trim(),code:newTCode.trim()}]}));setNewTName('');setNewTCode('');showToast('追加しました')}}>追加</button>
+            <span style={{fontSize:11,color:'var(--tx3)',marginLeft:8}}>{cur.length}名登録中</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Consent items */}
+      <div className="admin-sec">
+        <div className="admin-title">承諾書 同意項目</div>
+        <p style={{fontSize:12,color:'var(--tx2)',marginBottom:10,lineHeight:1.7}}>顧客フォームの承諾書に表示するチェック項目です。</p>
+        <div style={{display:'flex',flexDirection:'column',gap:6,marginBottom:12}}>
+          {consentItems.map((item,i)=>(
+            <div key={i} style={{
+              background:'var(--bg)',border:'1px solid var(--bd)',borderRadius:'var(--rs)',
+              padding:'9px 12px',display:'flex',alignItems:'flex-start',gap:10
+            }}>
+              <span style={{fontSize:12,fontWeight:700,color:'var(--tx3)',flexShrink:0,minWidth:20,paddingTop:1}}>{i+1}.</span>
+              <span style={{fontSize:12,color:'var(--tx)',flex:1,lineHeight:1.65,wordBreak:'break-all'}}>{item}</span>
+              <button className="btn btn-xs btn-danger" style={{flexShrink:0,marginTop:1}}
+                onClick={()=>setConsentItems(p=>p.filter((_,j)=>j!==i))}>削除</button>
+            </div>
+          ))}
+          {consentItems.length===0&&(
+            <div style={{padding:'12px',background:'var(--bg)',borderRadius:'var(--rs)',fontSize:12,color:'var(--tx3)',textAlign:'center',border:'1px dashed var(--bd2)'}}>
+              項目がありません
+            </div>
+          )}
+        </div>
+        <div style={{display:'flex',gap:6,alignItems:'flex-start'}}>
+          <textarea value={newCI} onChange={e=>setNewCI(e.target.value)}
+            placeholder="同意項目を入力（長文OK）"
+            style={{flex:1,fontSize:12,minHeight:60,resize:'vertical'}}
+            onKeyDown={e=>e.key==='Enter'&&e.ctrlKey&&newCI.trim()&&(setConsentItems(p=>[...p,newCI.trim()]),setNewCI(''),showToast('追加しました'))}/>
+          <button className="btn btn-sm btn-primary" style={{flexShrink:0,marginTop:1}}
+            onClick={()=>{if(newCI.trim()){setConsentItems(p=>[...p,newCI.trim()]);setNewCI('');showToast('追加しました')}}}>追加</button>
+        </div>
+        <p style={{fontSize:11,color:'var(--tx3)',marginTop:6}}>Ctrl+Enterでも追加できます</p>
+      </div>
+
+      {/* パスワード変更 */}
+      <AdminPassChange showToast={showToast}/>
+
+      {/* URL案内 */}
+      <UrlGuide/>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   APP ROOT
+══════════════════════════════════════ */
+const var_r='10px';
+
+function App(){
+  const [locId,setLocId]=useState(()=>LS.get('nail_cur_loc','loc1'));
+  const [tab,setTab]=useState('timer');
+  const [detailId,setDetailId]=useState(null);
+  const [evalTarget,setEvalTarget]=useState(null);
+  const [toast,setToast]=useState(null);
+  const [page,setPage]=useState('select'); // 'select' | 'staff' | 'form' | 'student'
+  const [appUnlocked,setAppUnlocked]=useState(()=>sessionStorage.getItem('nail_app_unlocked')==='1');
+
+  const [locations,setLocations]=useState(()=>LS.get('nail_locations',DEF_LOCATIONS));
+  const [menus,setMenus]=useState(()=>LS.get('nail_menus',DEF_MENUS));
+  const [traineesByLoc,setTraineesByLoc]=useState(()=>LS.get('nail_trainees_v5',DEF_TRAINEES));
+  const [consentItems,setConsentItems]=useState(()=>LS.get('nail_consent_items',DEF_CONSENT_ITEMS));
+  const [sessions,setSessions]=useState(()=>LS.get('nail_sessions',{}));
+  const [records,setRecords]=useState(()=>LS.get('nail_records',[]));
+  const [dbLoading,setDbLoading]=useState(SB_READY);
+
+  // 初回ロード: DB から最新データを取得
+  useEffect(()=>{
+    // 設定系はDBから読み込み
+    const existing = LS.get('nail_consent_items', null);
+    if(!existing || existing.length === 0) LS.set('nail_consent_items', DEF_CONSENT_ITEMS);
+
+    if(!SB_READY){ setDbLoading(false); return; }
+    (async()=>{
+      try{
+        const [dbSessions, dbRecords, dbLocs, dbMenus, dbTrainees, dbConsent] = await Promise.all([
+          DB.getSessions(),
+          DB.getRecords(),
+          DB.getSetting('nail_locations', null),
+          DB.getSetting('nail_menus', null),
+          DB.getSetting('nail_trainees_v5', null),
+          DB.getSetting('nail_consent_items', null),
+        ]);
+        setSessions(dbSessions);
+        if(dbRecords.length > 0) setRecords(dbRecords);
+        if(dbLocs) setLocations(dbLocs);
+        if(dbMenus) setMenus(dbMenus);
+        if(dbTrainees) setTraineesByLoc(dbTrainees);
+        if(dbConsent && dbConsent.length > 0) setConsentItems(dbConsent);
+      } catch(e){ console.warn('DB load error:', e); }
+      finally{ setDbLoading(false); }
+    })();
+
+    // リアルタイム: セッション変更を購読
+    if(SB_READY){
+      const sub = sb.channel('nail_realtime')
+        .on('postgres_changes',{event:'*',schema:'public',table:'nail_sessions'},async()=>{
+          const latest = await DB.getSessions();
+          setSessions(latest);
+        })
+        .on('postgres_changes',{event:'*',schema:'public',table:'nail_records'},async()=>{
+          const latest = await DB.getRecords();
+          setRecords(latest);
+        })
+        .subscribe();
+      return ()=>sb.removeChannel(sub);
+    }
+  },[]);
+
+  useEffect(()=>LS.set('nail_cur_loc',locId),[locId]);
+  // 設定変更をDBに保存
+  useEffect(()=>{LS.set('nail_locations',locations);DB.setSetting('nail_locations',locations);},[locations]);
+  useEffect(()=>{LS.set('nail_menus',menus);DB.setSetting('nail_menus',menus);},[menus]);
+  useEffect(()=>{LS.set('nail_trainees_v5',traineesByLoc);DB.setSetting('nail_trainees_v5',traineesByLoc);},[traineesByLoc]);
+  useEffect(()=>{LS.set('nail_consent_items',consentItems);DB.setSetting('nail_consent_items',consentItems);},[consentItems]);
+  // セッション・記録はDB.upsert/deleteで個別に保存するのでuseEffectは不要だがキャッシュ用に残す
+  useEffect(()=>LS.set('nail_sessions',sessions),[sessions]);
+  useEffect(()=>LS.set('nail_records',records),[records]);
+
+  const showToast=msg=>{setToast(msg);setTimeout(()=>setToast(null),2400)};
+
+  // ── STAFF MODE ──
+  const trainees=traineesByLoc[locId]||[];
+  const sk=name=>`${locId}_${name}`;
+  const curLoc=locations.find(l=>l.id===locId)||locations[0];
+  const pendingEval=records.filter(r=>!r.result).length;
+  const runningCount=trainees.reduce((a,t)=>a+((sessions[sk(t.name)]||[]).filter(s=>s.status==='running').length),0);
+
+  const saveEval=(form)=>{
+    if(!evalTarget)return;
+    const{session,trainee}=evalTarget;
+    const staff=trainees.find(t=>t.name===trainee);
+    const menuObj=menus.find(m=>m.name===(form.menu||session.menu));
+    const rec={
+      id:uid(),savedAt:Date.now(),date:today(),
+      locationId:locId,trainee,staffCode:staff?.code||'',
+      menu:form.menu||session.menu,
+      elapsed:session.elapsed||0,
+      targetMins:form.targetMins||(menuObj?.targetMins||90),
+      checker:form.checker,
+      result:form.result,
+      note:form.note,
+      consentData:session.consentData||null,
+      surveyData:session.surveyData||null,
+    };
+    setRecords(p=>[...p,rec]);
+    DB.upsertRecord(rec);
+    const k=sk(trainee);
+    setSessions(p=>({...p,[k]:(p[k]||[]).map(s=>s.id===session.id?{...s,status:'eval'}:s)}));
+    // セッションをDBで更新
+    DB.upsertSession(locId, trainee, {...session, status:'eval'});
+    setEvalTarget(null);
+    showToast('保存しました');
+  };
+
+  const updateRecord=(id,data)=>{
+    setRecords(p=>p.map(r=>r.id===id?{...r,...data}:r));
+    const rec = records.find(r=>r.id===id);
+    if(rec) DB.upsertRecord({...rec,...data});
+    showToast('更新しました');
+  };
+  const deleteRecord=id=>{
+    if(!window.confirm('この記録を削除しますか？'))return;
+    setRecords(p=>p.filter(r=>r.id!==id));
+    DB.deleteRecord(id);
+    if(detailId===id)setDetailId(null);
+  };
+
+  const detailRec=detailId?records.find(r=>r.id===detailId):null;
+  const dateStr=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+
+  const navItems=[
+    {k:'timer',l:'タイマー',badge:runningCount>0?runningCount:null},
+    {k:'list',l:'記録一覧',badge:pendingEval>0?pendingEval:null},
+    {k:'stats',l:'集計'},
+    {k:'admin',l:'管理'},
+  ];
+
+  const handleAppUnlock=()=>{sessionStorage.setItem('nail_app_unlocked','1');setAppUnlocked(true);};
+
+  if(page==='student') return <StudentApp onBack={()=>setPage('select')}/>;
+  if(page==='staff'){
+    if(!appUnlocked) return <AppLock onUnlock={handleAppUnlock}/>;
+  } else {
+    return <SelectPage onSelect={setPage}/>;
+  }
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',minHeight:'100vh'}}>
+      <div className="topbar">
+        {/* Logo */}
+        <div className="logo" onClick={()=>{setTab('timer');setDetailId(null)}}>
+          <div className="logo-gem"><svg viewBox="0 0 16 16"><path d="M8 1L14 5L8 15L2 5Z"/></svg></div>
+          <span style={{display:'none'}}>ネイル研修管理</span>
+        </div>
+
+        {/* Location switcher */}
+        <div className="loc-switcher">
+          {locations.map(loc=>(
+            <button key={loc.id} className={`loc-sw-btn${locId===loc.id?' active':''}`}
+              style={{
+                background:locId===loc.id?loc.bg:'var(--sf2)',
+                color:locId===loc.id?loc.color:'var(--tx3)',
+                borderColor:locId===loc.id?loc.color:'transparent',
+              }}
+              onClick={()=>{setLocId(loc.id);setDetailId(null);setTab('timer')}}>
+              {loc.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Nav */}
+        <div className="topnav">
+          {navItems.map(n=>(
+            <button key={n.k} className={`tnav${tab===n.k&&!detailId?' on':''}`}
+              onClick={()=>{setTab(n.k);setDetailId(null)}}>
+              <span>{n.l}</span>
+              {n.badge&&<span className="bnum">{n.badge}</span>}
+            </button>
+          ))}
+        </div>
+
+        <div style={{display:'flex',alignItems:'center',gap:7}}>
+          <div className="datechip">{dateStr}</div>
+          <button style={{padding:'4px 10px',border:'1px solid var(--bd2)',borderRadius:'var(--rs)',background:'transparent',cursor:'pointer',fontSize:11,fontFamily:'inherit',color:'var(--tx2)'}}
+            onClick={()=>{sessionStorage.removeItem('nail_app_unlocked');setAppUnlocked(false);}}>
+            🔒 ロック
+          </button>
+        </div>
+      </div>
+
+      <div className="page">
+        {detailRec&&(
+          <DetailPage rec={detailRec} locations={locations} onBack={()=>setDetailId(null)} onUpdate={updateRecord}/>
+        )}
+        {!detailRec&&tab==='timer'&&(
+          <TimerBoard locId={locId} trainees={trainees} menus={menus}
+            sessions={sessions} setSessions={setSessions} records={records}
+            onOpenEval={(session,trainee)=>setEvalTarget({session,trainee})}
+            showToast={showToast}/>
+        )}
+        {!detailRec&&tab==='list'&&(
+          <div className="card card-p">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+              <div>
+                <h2 style={{fontSize:15,fontWeight:700}}>施術記録一覧</h2>
+                <p style={{fontSize:11,color:'var(--tx3)',marginTop:2}}>
+                  全 {records.length}件（全拠点）／ 評価待ち
+                  <span style={{color:pendingEval>0?'var(--amber)':'var(--green)',fontWeight:600,marginLeft:4}}>{pendingEval}件</span>
+                </p>
+              </div>
+            </div>
+            <ListScreen records={records} onDelete={deleteRecord} onOpenDetail={id=>setDetailId(id)} locations={locations}/>
+          </div>
+        )}
+        {!detailRec&&tab==='stats'&&(
+          <div><h2 style={{fontSize:18,fontWeight:700,marginBottom:14}}>集計・分析</h2><StatsScreen records={records} locations={locations}/></div>
+        )}
+        {!detailRec&&tab==='admin'&&(
+          <div>
+            <h2 style={{fontSize:18,fontWeight:700,marginBottom:14}}>管理設定</h2>
+            <AdminScreen locations={locations} setLocations={setLocations}
+              menus={menus} setMenus={setMenus}
+              traineesByLoc={traineesByLoc} setTraineesByLoc={setTraineesByLoc}
+              consentItems={consentItems} setConsentItems={setConsentItems}
+              showToast={showToast}/>
+          </div>
+        )}
+      </div>
+
+      {evalTarget&&(
+        <EvalModal session={evalTarget.session} trainee={evalTarget.trainee}
+          menus={menus} onSave={saveEval} onClose={()=>setEvalTarget(null)}/>
+      )}
+      {toast&&<div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+/* STUDENT PAGE */
+/* ══ STUDENT HELPER FUNCTIONS ══ */
+const studentGetUrlCode=()=>new URLSearchParams(window.location.search).get('code')||'';
+const stFmt2=n=>String(n).padStart(2,'0');
+const stFmtT=sec=>{
+  if(!sec)return'—';
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),sc=sec%60;
+  return h?`${h}:${stFmt2(m)}:${stFmt2(sc)}`:`${stFmt2(m)}:${stFmt2(sc)}`;
+};
+const stAvgS=(obj,keys)=>{
+  if(!obj)return 0;
+  const vs=keys.map(k=>obj[k]||0).filter(v=>v>0);
+  return vs.length?(vs.reduce((a,b)=>a+b,0)/vs.length):0;
+};
+const stStarsStr=n=>n>0?'★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n)):'—';
+
+const ST_KEYS={trainees:'nail_trainees_v5',records:'nail_records'};
+
+/* ── STORAGE KEYS (共通) ── */
+
+const ST_SURVEY_QS=[
+  {k:'sq1',l:'仕上がり満足度'},{k:'sq2',l:'接客態度'},
+  {k:'sq3',l:'施術中の快適さ'},{k:'sq4',l:'総合満足度'},
+];
+const ST_CK_CRIT=[
+  {k:'ck1',l:'技術・仕上がり'},{k:'ck2',l:'衛生管理'},
+  {k:'ck3',l:'手順・スピード'},{k:'ck4',l:'接客コミュニケーション'},{k:'ck5',l:'総合評価'},
+];
+const ST_RESULTS={pass:'合格',review:'要再確認',fail:'不合格'};
+
+
+/* ── RESULT BADGE ── */
+function StudentResultBadge({result}){
+  if(!result)return <span className="rec-result rr-none">評価待ち</span>;
+  const cls={pass:'rr-pass',review:'rr-review',fail:'rr-fail'}[result]||'rr-none';
+  return <span className={`rec-result ${cls}`}>{ST_RESULTS[result]||result}</span>;
+}
+
+/* ── LOGIN SCREEN ── */
+function LoginScreen({onLogin}){
+  const urlCode=studentGetUrlCode().toUpperCase();
+  const [code,setCode]=useState(urlCode);
+  const [err,setErr]=useState('');
+
+  const allTrainees=LS.get(ST_KEYS.trainees,{});
+  const findStaff=c=>{
+    for(const [locId,ts] of Object.entries(allTrainees)){
+      const t=ts.find(x=>x.code&&x.code.toUpperCase()===c.toUpperCase());
+      if(t)return{...t,locId};
+    }
+    return null;
+  };
+
+  const attempt=()=>{
+    const s=findStaff(code.trim());
+    if(!s){setErr('スタッフコードが見つかりません。担当講師にご確認ください。');return;}
+    onLogin(s);
+  };
+
+  // auto login if valid url code
+  useEffect(()=>{
+    if(urlCode){
+      const s=findStaff(urlCode);
+      if(s)onLogin(s);
+    }
+  },[]);
+
+  return(
+    <div className="login-wrap">
+      <div className="login-box">
+        <div className="login-gem"><svg viewBox="0 0 16 16"><path d="M8 1L14 5L8 15L2 5Z"/></svg></div>
+        <div className="login-title">施術記録を確認する</div>
+        <div className="login-sub">スタッフコードを入力してください</div>
+        <div className="login-label">スタッフコード</div>
+        <input className="login-input" type="text" value={code}
+          onChange={e=>{setCode(e.target.value.toUpperCase());setErr('');}}
+          onKeyDown={e=>e.key==='Enter'&&attempt()}
+          placeholder="例：TK-001" maxLength={10}
+          autoComplete="off" autoCorrect="off" autoCapitalize="characters"/>
+        {/* リアルタイム確認 */}
+        {code.length>=3&&(()=>{
+          const s=findStaff(code);
+          return s?(
+            <div style={{padding:'6px 10px',background:'var(--green-l)',borderRadius:'var(--rs)',fontSize:12,color:'var(--green)',fontWeight:700,marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
+              <span>✓</span>{s.name}
+            </div>
+          ):<div style={{height:8}}/>;
+        })()}
+        <div className="login-err">{err}</div>
+        <button className="login-btn" onClick={attempt} disabled={code.trim().length<2}>
+          記録を確認する →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── RECORD DETAIL CARD ── */
+function RecCard({rec,idx}){
+  const [open,setOpen]=useState(idx===0); // 最初の1件だけ開く
+  const elMin=Math.floor((rec.elapsed||0)/60);
+  const diff=rec.targetMins?elMin-rec.targetMins:null;
+  const surveyAvg=stAvgS(rec.surveyData,ST_SURVEY_QS.map(q=>q.k));
+  const ckAvg=stAvgS(rec.ck,ST_CK_CRIT.map(c=>c.k));
+
+  return(
+    <div className="rec-card">
+      <div className="rec-head" style={{cursor:'pointer'}} onClick={()=>setOpen(v=>!v)}>
+        <div>
+          <div className="rec-date">{rec.date}　{rec.menu||'—'}</div>
+          {rec.checker&&<div style={{fontSize:11,color:'var(--tx3)',marginTop:2}}>チェック：{rec.checker}</div>}
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <StudentResultBadge result={rec.result}/>
+          <span style={{fontSize:16,color:'var(--tx3)',userSelect:'none'}}>{open?'▲':'▼'}</span>
+        </div>
+      </div>
+
+      {open&&(
+        <div className="rec-body">
+          {/* メタ情報 */}
+          <div className="rec-row">
+            <div className="rec-meta-item">
+              <span className="rmi-lbl">施術時間</span>
+              <span className={`rmi-val ${diff!==null&&diff>0?'over':'ok'}`}>{stFmtT(rec.elapsed)}</span>
+            </div>
+            <div className="rec-meta-item">
+              <span className="rmi-lbl">目標時間</span>
+              <span className="rmi-val">{rec.targetMins?rec.targetMins+'分':'—'}</span>
+            </div>
+            <div className="rec-meta-item">
+              <span className="rmi-lbl">差分</span>
+              <span className={`rmi-val ${diff!==null?(diff>0?'over':'ok'):'neutral'}`}>
+                {diff!==null?(diff>0?'+':'')+diff+'分':'—'}
+              </span>
+            </div>
+            {surveyAvg>0&&(
+              <div className="rec-meta-item">
+                <span className="rmi-lbl">顧客評価</span>
+                <span className="mri-val" style={{fontSize:13,fontWeight:700,color:'#f59e0b'}}>
+                  {'★'.repeat(Math.round(surveyAvg))} {surveyAvg.toFixed(1)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* 顧客アンケート */}
+          {rec.surveyData&&(
+            <div className="score-sec">
+              <div className="score-sec-title">顧客アンケート</div>
+              <div className="score-rows">
+                {ST_SURVEY_QS.map(q=>(
+                  <div className="score-row-item" key={q.k}>
+                    <span className="score-row-lbl">{q.l}</span>
+                    <span className="score-row-stars">{stStarsStr(rec.surveyData[q.k]||0)}</span>
+                    <span className="score-row-num">{rec.surveyData[q.k]||'—'}</span>
+                  </div>
+                ))}
+                <div className="score-row-item" style={{background:'var(--sf2)',margin:'0 -12px',padding:'5px 12px',borderRadius:'0 0 var(--rs) var(--rs)'}}>
+                  <span className="score-row-lbl" style={{fontWeight:700}}>平均</span>
+                  <span className="score-row-stars">{stStarsStr(surveyAvg)}</span>
+                  <span className="score-row-num" style={{fontWeight:700}}>{surveyAvg>0?surveyAvg.toFixed(1):'—'}</span>
+                </div>
+              </div>
+              {rec.surveyData.comment&&(
+                <div style={{marginTop:8,padding:'8px 10px',background:'var(--blue-l)',borderRadius:'var(--rs)',fontSize:12,color:'var(--tx2)',lineHeight:1.7}}>
+                  顧客コメント：{rec.surveyData.comment}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* チェック者評価 */}
+          {rec.ck&&ckAvg>0&&(
+            <div className="score-sec">
+              <div className="score-sec-title">チェック者評価</div>
+              <div className="score-rows">
+                {ST_CK_CRIT.map(c=>(
+                  <div className="score-row-item" key={c.k}>
+                    <span className="score-row-lbl">{c.l}</span>
+                    <span className="score-row-stars">{stStarsStr(rec.ck[c.k]||0)}</span>
+                    <span className="score-row-num">{rec.ck[c.k]||'—'}</span>
+                  </div>
+                ))}
+                <div className="score-row-item" style={{background:'var(--sf2)',margin:'0 -12px',padding:'5px 12px'}}>
+                  <span className="score-row-lbl" style={{fontWeight:700}}>平均</span>
+                  <span className="score-row-stars">{stStarsStr(ckAvg)}</span>
+                  <span className="score-row-num" style={{fontWeight:700}}>{ckAvg.toFixed(1)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 講師備考 */}
+          {rec.note&&(
+            <div className="note-box">
+              <div className="note-lbl">講師コメント</div>
+              <div className="note-txt">{rec.note}</div>
+            </div>
+          )}
+
+          {/* 評価なし */}
+          {!rec.result&&(
+            <div style={{padding:'10px 12px',background:'var(--amber-l)',borderRadius:'var(--rs)',fontSize:12,color:'var(--amber)',marginTop:4}}>
+              ⏳ 講師による評価を待っています
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── MAIN DASHBOARD ── */
+function Dashboard({staff,onLogout,onBack}){
+  const [tab,setTab]=useState('records');
+  const allRecords=LS.get(ST_KEYS.records,[]);
+
+  // このスタッフの記録だけ絞り込み
+  const myRecords=useMemo(()=>
+    allRecords.filter(r=>r.staffCode===staff.code)
+      .sort((a,b)=>b.savedAt-a.savedAt),
+    [allRecords,staff.code]
+  );
+
+  const n=myRecords.length;
+  const withTime=myRecords.filter(r=>r.elapsed>0);
+  const avgTime=withTime.length?Math.round(withTime.reduce((a,r)=>a+(r.elapsed||0),0)/withTime.length/60):null;
+  const withSurvey=myRecords.filter(r=>r.surveyData);
+  const avgSurvey=withSurvey.length
+    ?(withSurvey.reduce((a,r)=>a+stAvgS(r.surveyData,ST_SURVEY_QS.map(q=>q.k)),0)/withSurvey.length).toFixed(1)
+    :null;
+  const evaluated=myRecords.filter(r=>r.result);
+  const passN=myRecords.filter(r=>r.result==='pass').length;
+  const passRate=evaluated.length?Math.round(passN/evaluated.length*100):null;
+
+  // メニュー別平均時間
+  const byMenu={};
+  myRecords.forEach(r=>{
+    if(r.menu&&r.elapsed>0){
+      if(!byMenu[r.menu])byMenu[r.menu]={s:0,n:0};
+      byMenu[r.menu].s+=r.elapsed;byMenu[r.menu].n++;
+    }
+  });
+  const menuRows=Object.entries(byMenu).map(([name,d])=>({name,time:Math.round(d.s/d.n/60)})).sort((a,b)=>b.time-a.time);
+  const maxT=Math.max(...menuRows.map(r=>r.time),1);
+
+  // 直近の成長：直近3件 vs それ以前の平均
+  const recent3=myRecords.slice(0,3).filter(r=>r.ck);
+  const older=myRecords.slice(3).filter(r=>r.ck);
+  const recentCkAvg=recent3.length?(recent3.reduce((a,r)=>a+stAvgS(r.ck,ST_CK_CRIT.map(c=>c.k)),0)/recent3.length).toFixed(1):null;
+  const olderCkAvg=older.length?(older.reduce((a,r)=>a+stAvgS(r.ck,ST_CK_CRIT.map(c=>c.k)),0)/older.length).toFixed(1):null;
+
+  const dateStr=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+
+  return(
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      {/* topbar */}
+      <div className="topbar">
+        <div className="top-logo">
+          <div className="top-gem"><svg viewBox="0 0 16 16"><path d="M8 1L14 5L8 15L2 5Z"/></svg></div>
+          <span className="top-name">{staff.name}</span>
+          <span className="top-code">{staff.code}</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:11,color:'var(--tx3)',fontFamily:"'DM Mono',monospace"}}>{dateStr}</span>
+          <button className="logout-btn" onClick={onLogout}>ログアウト</button>
+          {onBack&&<button className="logout-btn" onClick={onBack}>← トップへ</button>}
+        </div>
+      </div>
+
+      <div className="page">
+
+        {/* サマリーカード */}
+        <div className="summary-grid">
+          <div className="sum-card">
+            <div className="sum-lbl">施術件数</div>
+            <div className="sum-val">{n}</div>
+            <div className="sum-sub">件</div>
+          </div>
+          <div className="sum-card">
+            <div className="sum-lbl">平均施術時間</div>
+            <div className="sum-val">{avgTime??'—'}</div>
+            <div className="sum-sub">分</div>
+          </div>
+          <div className="sum-card">
+            <div className="sum-lbl">顧客評価 平均</div>
+            <div className="sum-val" style={{color:'#f59e0b'}}>{avgSurvey??'—'}</div>
+            <div className="sum-sub">/ 5.0</div>
+          </div>
+          <div className="sum-card">
+            <div className="sum-lbl">合格率</div>
+            <div className={`sum-val ${passRate!==null?(passRate>=80?'':''):''}` }>
+              <span style={{color:passRate===null?'var(--tx3)':passRate>=80?'var(--green)':passRate>=50?'var(--amber)':'var(--red)'}}>
+                {passRate!==null?passRate+'%':'—'}
+              </span>
+            </div>
+            <div className="sum-sub">{passN}件合格 / {evaluated.length}件評価済み</div>
+          </div>
+        </div>
+
+        {/* タブ */}
+        <div className="tabs">
+          <button className={`tab-btn${tab==='records'?' on':''}`} onClick={()=>setTab('records')}>
+            施術記録 {n>0&&<span style={{fontSize:11,background:tab==='records'?'rgba(255,255,255,.2)':'var(--sf2)',borderRadius:10,padding:'1px 6px',marginLeft:4}}>{n}</span>}
+          </button>
+          <button className={`tab-btn${tab==='stats'?' on':''}`} onClick={()=>setTab('stats')}>
+            成長グラフ
+          </button>
+        </div>
+
+        {/* 施術記録タブ */}
+        {tab==='records'&&(
+          n===0
+          ?(
+            <div className="empty">
+              <div className="empty-icon">📭</div>
+              <div className="empty-msg">施術記録がまだありません</div>
+              <div style={{fontSize:12,color:'var(--tx3)',marginTop:6}}>施術が記録されると、ここに表示されます</div>
+            </div>
+          ):(
+            <div>
+              <div className="sec-head">
+                <div>
+                  <div className="sec-title">施術記録一覧</div>
+                  <div className="sec-sub">タップすると詳細が開きます</div>
+                </div>
+              </div>
+              <div className="rec-list">
+                {myRecords.map((r,i)=><RecCard key={r.id} rec={r} idx={i}/>)}
+              </div>
+            </div>
+          )
+        )}
+
+        {/* 成長グラフタブ */}
+        {tab==='stats'&&(
+          <div>
+            <div className="sec-head">
+              <div>
+                <div className="sec-title">成長の記録</div>
+                <div className="sec-sub">スタッフコード：{staff.code}</div>
+              </div>
+            </div>
+
+            {n===0?(
+              <div className="empty">
+                <div className="empty-icon">📈</div>
+                <div className="empty-msg">データがありません</div>
+              </div>
+            ):(
+              <>
+                {/* 進捗指標 */}
+                <div className="prog-wrap">
+                  <div className="prog-item">
+                    <span className="prog-num">{n}</span>
+                    <span className="prog-lbl">総施術件数</span>
+                  </div>
+                  <div className="prog-item">
+                    <span className={`pass-ring ${passRate!==null?(passRate>=80?'good':passRate>=50?'mid':'low'):''}`}>
+                      {passRate!==null?passRate+'%':'—'}
+                    </span>
+                    <span className="prog-lbl">合格率</span>
+                  </div>
+                  {recentCkAvg&&(
+                    <div className="prog-item">
+                      <span className="prog-num" style={{color:'var(--green)'}}>{recentCkAvg}</span>
+                      <span className="prog-lbl">直近3件の評価</span>
+                    </div>
+                  )}
+                  {olderCkAvg&&recentCkAvg&&(
+                    <div className="prog-item">
+                      <span className="prog-num" style={{color:parseFloat(recentCkAvg)>=parseFloat(olderCkAvg)?'var(--green)':'var(--amber)'}}>
+                        {parseFloat(recentCkAvg)>=parseFloat(olderCkAvg)?'↑':'↓'}
+                        {Math.abs(parseFloat(recentCkAvg)-parseFloat(olderCkAvg)).toFixed(1)}
+                      </span>
+                      <span className="prog-lbl">直近 vs 以前</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* メニュー別平均時間 */}
+                {menuRows.length>0&&(
+                  <div style={{background:'var(--sf)',border:'1px solid var(--bd)',borderRadius:'var(--r)',padding:16,marginBottom:14,boxShadow:'var(--sh)'}}>
+                    <div style={{fontSize:13,fontWeight:700,marginBottom:12}}>メニュー別 平均施術時間</div>
+                    <div className="mini-chart">
+                      {menuRows.map(r=>(
+                        <div key={r.name} className="mc-row">
+                          <div className="mc-lbl" title={r.name}>{r.name.length>9?r.name.slice(0,8)+'…':r.name}</div>
+                          <div className="mc-track"><div className="mc-fill" style={{width:`${(r.time/maxT*100).toFixed(0)}%`,background:'var(--pink)'}}/></div>
+                          <div className="mc-val" style={{color:'var(--pink)'}}>{r.time}分</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* チェック評価の推移（直近8件） */}
+                {(() => {
+                  const ckRecs=myRecords.filter(r=>r.ck&&stAvgS(r.ck,ST_CK_CRIT.map(c=>c.k))>0).slice(0,8).reverse();
+                  if(ckRecs.length<2)return null;
+                  const maxCk=5;
+                  return(
+                    <div style={{background:'var(--sf)',border:'1px solid var(--bd)',borderRadius:'var(--r)',padding:16,marginBottom:14,boxShadow:'var(--sh)'}}>
+                      <div style={{fontSize:13,fontWeight:700,marginBottom:12}}>チェック評価の推移（直近{ckRecs.length}件）</div>
+                      <div className="mini-chart">
+                        {ckRecs.map((r,i)=>{
+                          const avg=+stAvgS(r.ck,ST_CK_CRIT.map(c=>c.k)).toFixed(1);
+                          return(
+                            <div key={r.id} className="mc-row">
+                              <div className="mc-lbl" style={{fontFamily:"'DM Mono',monospace",fontSize:10}}>{r.date}</div>
+                              <div className="mc-track"><div className="mc-fill" style={{width:`${(avg/maxCk*100).toFixed(0)}%`,background:avg>=4?'var(--green)':avg>=3?'var(--amber)':'var(--red)'}}/></div>
+                              <div className="mc-val" style={{color:avg>=4?'var(--green)':avg>=3?'var(--amber)':'var(--red)'}}>{avg}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 各評価項目の平均 */}
+                {myRecords.some(r=>r.ck)&&(()=>{
+                  const ckRecs=myRecords.filter(r=>r.ck);
+                  return(
+                    <div style={{background:'var(--sf)',border:'1px solid var(--bd)',borderRadius:'var(--r)',padding:16,boxShadow:'var(--sh)'}}>
+                      <div style={{fontSize:13,fontWeight:700,marginBottom:12}}>評価項目別 平均スコア</div>
+                      <div className="mini-chart">
+                        {ST_CK_CRIT.map(c=>{
+                          const avg=+(ckRecs.reduce((a,r)=>a+(r.ck?.[c.k]||0),0)/ckRecs.length).toFixed(1);
+                          return(
+                            <div key={c.k} className="mc-row">
+                              <div className="mc-lbl">{c.l}</div>
+                              <div className="mc-track"><div className="mc-fill" style={{width:`${(avg/5*100).toFixed(0)}%`,background:'var(--blue)'}}/></div>
+                              <div className="mc-val" style={{color:'var(--blue)'}}>{avg>0?avg:'—'}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+/* ── APP ── */
+function StudentApp({onBack}){
+  const [staff,setStaff]=useState(null);
+  if(!staff)return <LoginScreen onLogin={setStaff}/>;
+  return <Dashboard staff={staff} onLogout={()=>setStaff(null)} onBack={onBack}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
