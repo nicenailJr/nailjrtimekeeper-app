@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>施術フォーム</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4f1;--sf:#fff;--sf2:#f1ede8;
+  --bd:#e0dbd3;--bd2:#cbc4ba;
+  --tx:#1c1a17;--tx2:#6b6558;--tx3:#a09890;
+  --pink:#d4607a;--pink-l:#fceef2;--pink-m:#f0b0be;
+  --green:#2e8c5e;--green-l:#e8f5ee;
+  --amber:#c47d20;--amber-l:#fdf3e3;
+  --red:#bf3a2e;--red-l:#fdecea;
+  --r:10px;--rs:6px;
+  --sh:0 1px 3px rgba(0,0,0,.07);
+  --shm:0 4px 16px rgba(0,0,0,.11);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;-webkit-text-size-adjust:100%}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5}
+#root{min-height:100vh}
+
+.cust-page{min-height:100vh;background:linear-gradient(160deg,#fceef2 0%,#f6f4f1 55%,#e8f3fb 100%)}
+.cust-header{background:var(--sf);border-bottom:1px solid var(--bd);padding:13px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh)}
+.cust-body{max-width:500px;margin:0 auto;padding:22px 16px 60px}
+.cust-card{background:var(--sf);border-radius:14px;padding:22px 20px;box-shadow:var(--shm);margin-bottom:14px;border:1px solid var(--bd)}
+.cust-step-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.cust-step-num{width:27px;height:27px;border-radius:50%;background:var(--pink);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cust-step-title{font-size:15px;font-weight:700}
+.cust-step-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.staff-confirm{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--green-l);border:1px solid #a8d5bf;border-radius:var(--rs);margin:12px 0}
+.staff-confirm-name{font-weight:700;color:var(--green)}
+.staff-confirm-sub{font-size:11px;color:var(--tx2);margin-top:1px}
+.code-row{display:flex;gap:7px;margin-bottom:4px}
+.code-row input{flex:1;font-size:19px;font-family:inherit;text-align:center;letter-spacing:.1em;font-weight:700;padding:10px;border:1.5px solid var(--bd2);border-radius:var(--rs);background:var(--sf);color:var(--tx);width:100%}
+.code-row input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(212,96,122,.1)}
+.consent-notice{background:var(--amber-l);border:1px solid #f0d090;border-radius:var(--rs);padding:11px 13px;font-size:12px;line-height:1.75;margin-bottom:14px;color:var(--tx)}
+.check-item{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;transition:.12s;margin-bottom:6px}
+.check-item.sel{border-color:var(--green);background:var(--green-l)}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);margin-top:1px;flex-shrink:0;cursor:pointer}
+.check-item label{cursor:pointer;font-size:13px;line-height:1.5}
+.form-section{margin-bottom:18px}
+.form-section-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.flabel{font-size:11px;font-weight:500;color:var(--tx2)}
+.req{color:var(--pink);margin-left:2px}
+input[type=text],input[type=tel],textarea{border:1px solid var(--bd2);border-radius:var(--rs);padding:9px 11px;font-size:14px;background:var(--sf);color:var(--tx);font-family:inherit;width:100%}
+input[type=text]:focus,input[type=tel]:focus,textarea:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(212,96,122,.08)}
+textarea{resize:vertical;min-height:64px}
+.star-wrap{display:flex;gap:6px;margin-bottom:4px}
+.star-btn{width:40px;height:40px;border:1.5px solid var(--bd);border-radius:var(--rs);background:var(--sf2);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:.1s;color:var(--tx3);-webkit-tap-highlight-color:transparent}
+.star-btn.on{background:#fff8e1;border-color:#f59e0b;color:#f59e0b}
+.btn{display:flex;align-items:center;justify-content:center;padding:13px;border-radius:var(--rs);font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;border:none;transition:.15s;width:100%;margin-top:6px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-pink{background:var(--pink);color:#fff}
+.btn-pink:not(:disabled):active{background:#be4f69}
+.btn-primary{background:#2a2520;color:#fff}
+.btn-primary:not(:disabled):active{background:#3d3830}
+.btn-ghost{background:transparent;color:var(--tx2);border:1px solid var(--bd2);padding:7px 14px;font-size:13px;width:auto;margin-top:0}
+.success-wrap{text-align:center;padding:28px 16px}
+.success-icon{font-size:56px;margin-bottom:14px}
+.success-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--tx2);line-height:1.8}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+/* ── STORAGE KEYS ── */
+const LS={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+
+/* ══ SUPABASE 設定（nail_staff.html と同じ値を入れてください）══ */
+const SUPABASE_URL = 'https://zdpxspwwflirvlqkpanv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_195iy6RXWVdZyHpLLqsRqA_2jC_gVpt';
+const sb = (SUPABASE_URL !== 'https://zdpxspwwflirvlqkpanv.supabase.co')
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+const SB_READY = !!sb;
+const KEYS={
+  trainees:'nail_trainees_v5',
+  consentItems:'nail_consent_items',
+  sessions:'nail_sessions',
+};
+
+/* ── DEFAULT CONSENT ITEMS (fallback) ── */
+// 1番: 説明文（チェック不要・表示のみ）
+const CONSENT_NOTICE_TEXT='当店は、スクール生サロンです。\nJrネイリスト(研修生)の施術であることを、ご理解ください。';
+// 2〜6番: 必須チェック項目
+const DEF_CONSENT=[
+  'Jrネイリスト(研修生)施術の為、デザインのご要望に沿えない場合がございます。\n過度に細かなご要望や、研修生への威圧的な態度を取られる場合、施術を中断・お断りさせていただきます。',
+  '通常の施術時間よりお時間を頂戴する場合がございます。',
+  'Jrネイリストによる施術の為、いかなる場合でもお直しはお受けしておりません。\nまた、返金や保証も一切お受けできませんので、予めご了承ください。',
+  '2回以上の無断キャンセル、3回以上のお遅刻をされた方は、ご予約をお断りさせて頂く場合がございます。',
+  'お爪や皮膚に疾患・炎症、アレルギーがある場合は、施術をお断りする場合がございます。',
+];
+// 最終承諾文（単独チェック）
+const FINAL_CONSENT='上記内容について確認した上で、施術サービスを受ける事を承諾します。\n※承諾頂けない場合、施術出来かねますのでご了承下さい。';
+
+const SURVEY_QS=[
+  {k:'sq1',l:'仕上がりへの満足度'},
+  {k:'sq2',l:'施術者の接客態度'},
+  {k:'sq3',l:'施術中の快適さ'},
+  {k:'sq4',l:'総合満足度'},
+];
+
+const uid=()=>Date.now()+'_'+Math.random().toString(36).slice(2,7);
+const getUrlCode=()=>new URLSearchParams(window.location.search).get('code')||'';
+
+/* ── STAR RATING ── */
+function Stars({val,onChange}){
+  const [hov,setHov]=useState(0);
+  return(
+    <div className="star-wrap">
+      {[1,2,3,4,5].map(i=>(
+        <button key={i} type="button" className={`star-btn${(hov||val)>=i?' on':''}`}
+          onClick={()=>onChange(i)}
+          onMouseEnter={()=>setHov(i)} onMouseLeave={()=>setHov(0)}
+          onTouchStart={()=>setHov(i)} onTouchEnd={()=>{setHov(0);onChange(i)}}>★</button>
+      ))}
+    </div>
+  );
+}
+
+/* ── MAIN APP ── */
+function App(){
+  const [trainees] = useState(()=>LS.get(KEYS.trainees,{}));
+  const [consentItems] = useState(()=>{
+    const saved = LS.get(KEYS.consentItems, null);
+    return (saved && saved.length > 0) ? saved : DEF_CONSENT;
+  });
+
+  const urlCode=getUrlCode().toUpperCase();
+  const [step,setStep]=useState('code');
+  const [codeInput,setCodeInput]=useState(urlCode);
+  const [codeErr,setCodeErr]=useState('');
+  const [staff,setStaff]=useState(null);
+  const [sessRef,setSessRef]=useState(null);
+  const [resumed,setResumed]=useState(false);
+  const [consentForm,setConsentForm]=useState({name:'',checked:{},finalConsent:false});
+  const [surveyForm,setSurveyForm]=useState({...Object.fromEntries(SURVEY_QS.map(q=>[q.k,0])),comment:''});
+
+  /* ── helpers ── */
+  const findStaff=code=>{
+    for(const [locId,ts] of Object.entries(trainees)){
+      const t=ts.find(x=>x.code&&x.code.toUpperCase()===code.toUpperCase());
+      if(t)return{...t,locId};
+    }
+    return null;
+  };
+
+  const readSessions=()=>LS.get(KEYS.sessions,{});
+  const writeSessions=fn=>{
+    const cur=readSessions();
+    const next=fn(cur);
+    LS.set(KEYS.sessions,next);
+    return next;
+  };
+
+  const upsertSessionToDB=async(locId,traineeName,session)=>{
+    if(!SB_READY)return;
+    await sb.from('nail_sessions').upsert({
+      id:session.id, loc_id:locId, trainee_name:traineeName,
+      menu:session.menu||'', status:session.status,
+      elapsed:session.elapsed||0, timer_start:session.timerStart||null,
+      consent_data:session.consentData||null, survey_data:session.surveyData||null,
+      updated_at:new Date().toISOString(),
+    });
+  };
+
+  const findResumable=s=>{
+    const k=`${s.locId}_${s.name}`;
+    const cur=readSessions()[k]||[];
+    const found=cur.find(x=>(x.status==='running'||x.status==='done')&&x.consentData&&!x.surveyData);
+    return found?{key:k,id:found.id}:null;
+  };
+
+  const resolveCode=code=>{
+    const s=findStaff(code.trim());
+    if(!s){setCodeErr('スタッフコードが見つかりません。担当スタッフにご確認ください。');return;}
+    setStaff(s);setCodeErr('');
+    const resumable=findResumable(s);
+    if(resumable){setSessRef(resumable);setResumed(true);setStep('survey');}
+    else setStep('consent');
+  };
+
+  useEffect(()=>{if(urlCode)resolveCode(urlCode);},[]);
+
+  /* ── consent submit ── */
+  const allChecked=consentItems.every((_,i)=>consentForm.checked[i])&&consentForm.finalConsent;
+  const handleConsent=()=>{
+    if(!consentForm.name.trim()){alert('お名前を入力してください');return;}
+    if(consentItems.length>0&&!allChecked){alert('すべての同意項目にチェックしてください');return;}
+    if(!staff)return;
+    const k=`${staff.locId}_${staff.name}`;
+    const now=Date.now();
+    let targetId=null;
+    writeSessions(p=>{
+      const cur=p[k]||[];
+      const idle=cur.find(s=>s.status==='idle');
+      if(idle){
+        targetId=idle.id;
+        return{...p,[k]:cur.map(s=>s.id===idle.id
+          ?{...s,status:'running',timerStart:now,elapsed:0,consentData:{name:consentForm.name,submittedAt:now}}
+          :s)};
+      }
+      if(cur.length>=5){alert('施術枠が上限です。スタッフにご確認ください。');return p;}
+      const newS={id:uid(),menu:'',status:'running',elapsed:0,timerStart:now,
+        consentData:{name:consentForm.name,submittedAt:now},surveyData:null};
+      targetId=newS.id;
+      return{...p,[k]:[...cur,newS]};
+    });
+    setTimeout(async()=>{
+      setSessRef({key:k,id:targetId});
+      setStep('survey');
+      // DBにも書き込み
+      const cur=readSessions();
+      const sess=(cur[k]||[]).find(s=>s.id===targetId);
+      if(sess) await upsertSessionToDB(staff.locId, staff.name, sess);
+    },50);
+  };
+
+  /* ── survey submit ── */
+  const allRated=SURVEY_QS.every(q=>surveyForm[q.k]>0);
+  const handleSurvey=async()=>{
+    if(!allRated){alert('すべての評価にご回答ください');return;}
+    if(!sessRef)return;
+    writeSessions(p=>{
+      const{key,id}=sessRef;
+      return{...p,[key]:(p[key]||[]).map(s=>{
+        if(s.id!==id)return s;
+        const now=Date.now();
+        const el=s.timerStart?Math.floor((now-s.timerStart)/1000)+(s.elapsed||0):(s.elapsed||0);
+        return{...s,status:'done',elapsed:el,timerStart:null,surveyData:{...surveyForm,submittedAt:now}};
+      })};
+    });
+    // DBにも書き込み
+    if(SB_READY && sessRef){
+      const {key,id}=sessRef;
+      const cur=readSessions();
+      const sess=(cur[key]||[]).find(s=>s.id===id);
+      const [locId,traineeName]=key.split('_').reduce((a,v,i,arr)=>
+        i===0?[v,'']:i===arr.length-1?[a[0],a[1]+v]:[a[0],a[1]+v+'_'],['','']
+      );
+      // key は locId_traineeName 形式
+      const parts=key.split('_');
+      const lid=parts[0];
+      const tname=parts.slice(1).join('_');
+      if(sess) await sb.from('nail_sessions').upsert({
+        id:sess.id, loc_id:lid, trainee_name:tname,
+        menu:sess.menu||'', status:'done',
+        elapsed:sess.elapsed||0, timer_start:null,
+        consent_data:sess.consentData||null,
+        survey_data:{...surveyForm,submittedAt:Date.now()},
+        updated_at:new Date().toISOString(),
+      });
+    }
+    setStep('done');
+  };
+
+  /* ── step indicator ── */
+  const steps=[{n:1,l:'コード入力'},{n:2,l:'承諾書'},{n:3,l:'アンケート'}];
+  const stepIdx={code:0,consent:1,survey:2,done:3};
+  const curIdx=stepIdx[step]||0;
+
+  return(
+    <div className="cust-page">
+      {/* header — no link to staff page */}
+      <div className="cust-header">
+        <div style={{width:30,height:30,borderRadius:8,background:'var(--pink)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <svg viewBox="0 0 16 16" style={{width:15,height:15,fill:'#fff'}}><path d="M8 1L14 5L8 15L2 5Z"/></svg>
+        </div>
+        <div>
+          <div style={{fontSize:14,fontWeight:700}}>ネイル施術 フォーム</div>
+          {staff&&<div style={{fontSize:11,color:'var(--tx3)',marginTop:1}}>担当：{staff.name}</div>}
+        </div>
+      </div>
+
+      {/* step indicator */}
+      {step!=='done'&&(
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'14px 20px 0',maxWidth:500,margin:'0 auto'}}>
+          {steps.map((s,i)=>(
+            <React.Fragment key={s.n}>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                <div style={{width:26,height:26,borderRadius:'50%',
+                  background:curIdx>i?'var(--green)':curIdx===i?'var(--pink)':'var(--sf2)',
+                  color:curIdx>=i?'#fff':'var(--tx3)',
+                  border:`1.5px solid ${curIdx>i?'var(--green)':curIdx===i?'var(--pink)':'var(--bd2)'}`,
+                  display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700}}>
+                  {curIdx>i?'✓':s.n}
+                </div>
+                <div style={{fontSize:10,color:curIdx===i?'var(--pink)':curIdx>i?'var(--green)':'var(--tx3)',fontWeight:curIdx===i?600:400}}>{s.l}</div>
+              </div>
+              {i<steps.length-1&&<div style={{flex:1,height:2,background:curIdx>i?'var(--green)':'var(--bd)',margin:'0 6px',marginBottom:18}}/>}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
+      <div className="cust-body">
+
+        {/* ── STEP: CODE ── */}
+        {step==='code'&&(
+          <div className="cust-card">
+            <div className="cust-step-hd">
+              <div className="cust-step-num">1</div>
+              <div>
+                <div className="cust-step-title">スタッフコードを入力</div>
+                <div className="cust-step-sub">担当スタッフから教えてもらったコードを入力してください</div>
+              </div>
+            </div>
+            <div className="code-row">
+              <input type="text" value={codeInput}
+                onChange={e=>{setCodeInput(e.target.value.toUpperCase());setCodeErr('');}}
+                placeholder="例：TK-001" maxLength={10}
+                onKeyDown={e=>e.key==='Enter'&&resolveCode(codeInput)}
+                autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck="false"/>
+            </div>
+            {codeInput.length>=3&&(()=>{
+              const s=findStaff(codeInput);
+              return s?(
+                <div className="staff-confirm">
+                  <span style={{fontSize:20}}>✓</span>
+                  <div>
+                    <div className="staff-confirm-name">{s.name}</div>
+                    <div className="staff-confirm-sub">担当スタッフを確認しました</div>
+                  </div>
+                </div>
+              ):null;
+            })()}
+            {codeErr&&<div style={{color:'var(--red)',fontSize:12,padding:'6px 0'}}>{codeErr}</div>}
+            <button className="btn btn-pink" onClick={()=>resolveCode(codeInput)}
+              disabled={codeInput.trim().length<2}>次へ →</button>
+          </div>
+        )}
+
+        {/* ── STEP: CONSENT ── */}
+        {step==='consent'&&staff&&(
+          <div>
+            <div className="cust-card" style={{padding:'13px 16px',marginBottom:12,background:'var(--green-l)',border:'1px solid #a8d5bf'}}>
+              <div style={{display:'flex',alignItems:'center',gap:9}}>
+                <div style={{width:36,height:36,borderRadius:'50%',background:'var(--pink-l)',color:'var(--pink)',fontSize:14,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  {staff.name.split(' ').map(p=>p[0]||'').join('').slice(0,2)}
+                </div>
+                <div>
+                  <div style={{fontWeight:700}}>{staff.name}</div>
+                  <div style={{fontSize:11,color:'var(--tx2)',marginTop:1}}>担当スタッフ</div>
+                </div>
+                <button className="btn-ghost btn" onClick={()=>{setStep('code');setStaff(null);}}>変更</button>
+              </div>
+            </div>
+
+            <div className="cust-card">
+              <div className="cust-step-hd">
+                <div className="cust-step-num">2</div>
+                <div>
+                  <div className="cust-step-title">施術承諾書</div>
+                  <div className="cust-step-sub">内容をご確認の上、送信してください</div>
+                </div>
+              </div>
+
+              <div className="consent-notice">
+                {CONSENT_NOTICE_TEXT.split('\n').map((line,i)=>(
+                  <span key={i}>{line}{i<CONSENT_NOTICE_TEXT.split('\n').length-1&&<br/>}</span>
+                ))}
+              </div>
+
+              <div className="form-section">
+                <div className="form-section-title">お客様情報</div>
+                <div className="fg">
+                  <label className="flabel">お名前<span className="req">*</span></label>
+                  <input type="text" value={consentForm.name} onChange={e=>setConsentForm(f=>({...f,name:e.target.value}))} placeholder="例：山田 花子"/>
+                </div>
+
+              </div>
+
+              {consentItems.length>0&&(
+                <div className="form-section">
+                  <div className="form-section-title">同意事項（全項目にチェックが必要です）</div>
+                  {consentItems.map((item,i)=>(
+                    <div key={i} className={`check-item${consentForm.checked[i]?' sel':''}`}
+                      onClick={()=>setConsentForm(f=>({...f,checked:{...f.checked,[i]:!f.checked[i]}}))}>
+                      <input type="checkbox" checked={!!consentForm.checked[i]} onChange={()=>{}} readOnly/>
+                      <label>
+                        {item.split('\n').map((line,j)=>(
+                          <span key={j}>{line}{j<item.split('\n').length-1&&<br/>}</span>
+                        ))}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 最終承諾チェック（6番の下） */}
+              <div style={{margin:'14px 0 6px',padding:'14px',background:'var(--pink-l)',border:'1.5px solid var(--pink-m)',borderRadius:'var(--rs)'}}>
+                <div className={`check-item${consentForm.finalConsent?' sel':''}`}
+                  style={{background:'white',marginBottom:0,border:'1px solid var(--pink-m)'}}
+                  onClick={()=>setConsentForm(f=>({...f,finalConsent:!f.finalConsent}))}>
+                  <input type="checkbox" checked={!!consentForm.finalConsent} onChange={()=>{}} readOnly/>
+                  <label style={{fontWeight:600}}>
+                    {FINAL_CONSENT.split('\n').map((line,j)=>(
+                      <span key={j}>{line}{j<FINAL_CONSENT.split('\n').length-1&&<br/>}</span>
+                    ))}
+                  </label>
+                </div>
+              </div>
+
+              <button className="btn btn-pink"
+                disabled={!consentForm.name.trim()||(consentItems.length>0&&!allChecked)}
+                onClick={handleConsent}>
+                承諾書を送信して施術を開始する →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP: SURVEY ── */}
+        {step==='survey'&&(
+          <div>
+            {resumed?(
+              <div style={{background:'var(--amber-l)',border:'1px solid #f0d090',borderRadius:'10px',padding:'13px 16px',marginBottom:12,display:'flex',alignItems:'center',gap:9}}>
+                <span style={{fontSize:20}}>🔄</span>
+                <div>
+                  <div style={{fontWeight:700,color:'var(--amber)'}}>アンケートの途中から再開しています</div>
+                  <div style={{fontSize:12,color:'var(--tx2)',marginTop:1}}>承諾書はすでに受け付け済みです。施術後アンケートにご回答ください。</div>
+                </div>
+              </div>
+            ):(
+              <div style={{background:'var(--green-l)',border:'1px solid #a8d5bf',borderRadius:'10px',padding:'13px 16px',marginBottom:12,display:'flex',alignItems:'center',gap:9}}>
+                <span style={{fontSize:20}}>✓</span>
+                <div>
+                  <div style={{fontWeight:700,color:'var(--green)'}}>承諾書を受け付けました</div>
+                  <div style={{fontSize:12,color:'var(--tx2)',marginTop:1}}>施術が終わりましたらアンケートにご回答ください</div>
+                </div>
+              </div>
+            )}
+
+            <div className="cust-card">
+              <div className="cust-step-hd">
+                <div className="cust-step-num" style={{background:'var(--green)'}}>3</div>
+                <div>
+                  <div className="cust-step-title">施術後アンケート</div>
+                  <div className="cust-step-sub">施術完了後にご回答ください（送信でタイム計測終了）</div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <div className="form-section-title">評価（5点満点）</div>
+                {SURVEY_QS.map(q=>(
+                  <div key={q.k} style={{marginBottom:18}}>
+                    <div style={{fontSize:13,fontWeight:500,marginBottom:8}}>{q.l}<span className="req"> *</span></div>
+                    <Stars val={surveyForm[q.k]} onChange={v=>setSurveyForm(f=>({...f,[q.k]:v}))}/>
+                    {surveyForm[q.k]>0&&<span style={{fontSize:12,color:'var(--tx3)',marginLeft:8,display:'inline-block',marginTop:4}}>
+                      {['','悪い','やや悪い','普通','良い','とても良い'][surveyForm[q.k]]}
+                    </span>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="form-section" style={{marginBottom:0}}>
+                <div className="form-section-title">ご意見・ご感想（任意）</div>
+                <textarea value={surveyForm.comment} onChange={e=>setSurveyForm(f=>({...f,comment:e.target.value}))} placeholder="よろしければご意見をお聞かせください"/>
+              </div>
+
+              <button className="btn btn-primary" style={{marginTop:16}}
+                disabled={!allRated} onClick={handleSurvey}>
+                アンケートを送信して完了する →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP: DONE ── */}
+        {step==='done'&&(
+          <div className="cust-card">
+            <div className="success-wrap">
+              <div className="success-icon">💅</div>
+              <div className="success-title">ありがとうございました！</div>
+              <div className="success-sub">
+                アンケートの送信が完了しました。<br/>
+                本日は研修にご協力いただき<br/>ありがとうございます。<br/>
+                またのご来店をお待ちしております。
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 管理画面へのリンクは一切表示しない */}
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
